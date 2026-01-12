@@ -7,3 +7,43 @@ body {
   margin: 0;
   color: white;
 }
+
+/* RTL Support */
+[dir="rtl"] {
+  direction: rtl;
+}
+
+[dir="ltr"] {
+  direction: ltr;
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #0c0c0e;
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #3d3d43;
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #c5a059;
+}
+
+/* Selection */
+::selection {
+  background: #c5a059;
+  color: #000;
+}
+
+::-moz-selection {
+  background: #c5a059;
+  color: #000;
+}
