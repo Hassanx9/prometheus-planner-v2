@@ -6,21 +6,25 @@ A premium, high-performance web platform dedicated to Path of Exile 2 and Diablo
 
 ### Core Features
 - ✅ **Dual-Language Support**: Arabic (RTL) and English (LTR) with full localization
-- ✅ **Build Guide System**: Comprehensive build database with tier rankings
-- ✅ **Item Database**: Searchable database of all in-game items
-- ✅ **AI Assistant**: Integrated AI guide for build optimization
+- ✅ **Build Guide System**: Comprehensive build database with S+ to D tier rankings
+- ✅ **Activity-Specific Tiers**: Tier ratings for Leveling, Bossing, Mapping, PvP, Farming, and Uber Bosses
+- ✅ **Item Database**: Advanced searchable database with multi-filter support
+- ✅ **AI Assistant**: OpenAI GPT-4o integration for real-time build analysis and optimization
+- ✅ **Interactive Skill Trees**: Zoomable, pannable skill trees with node details
 - ✅ **Community Hub**: User profiles, build sharing, and social features
 - ✅ **Leaderboards**: Top players and their builds
 - ✅ **Live Economy**: Real-time price tracking (integration ready)
 - ✅ **News & Patch Notes**: Latest updates and expert analysis
+- ✅ **Performance Optimized**: 90+ PageSpeed score target with code splitting and image optimization
 
 ### Technical Stack
-- **Framework**: Next.js 14 (App Router)
+- **Framework**: Next.js 15 (App Router)
 - **Internationalization**: next-intl
 - **Styling**: Tailwind CSS
 - **Icons**: Lucide React
-- **State Management**: Zustand (ready for implementation)
-- **Animations**: Framer Motion (ready for implementation)
+- **AI Integration**: OpenAI GPT-4o
+- **State Management**: Zustand
+- **Animations**: Framer Motion
 
 ## Getting Started
 
@@ -35,12 +39,20 @@ A premium, high-performance web platform dedicated to Path of Exile 2 and Diablo
 npm install
 ```
 
-2. Run the development server:
+2. Set up environment variables:
+```bash
+# Create .env.local file
+OPENAI_API_KEY=your_openai_api_key_here
+```
+
+3. Run the development server:
 ```bash
 npm run dev
 ```
 
-3. Open [http://localhost:3000](http://localhost:3000) in your browser
+4. Open [http://localhost:3000](http://localhost:3000) in your browser
+
+**Note:** See `DEPLOYMENT_GUIDE.md` for detailed deployment instructions and Vercel configuration.
 
 ### Language Support
 
@@ -94,10 +106,12 @@ prometheus-planner-v2/
 - [x] Core routing
 - [x] Basic UI components
 
-### Phase 2: Core Features (In Progress)
-- [ ] Build detail pages with interactive skill trees
-- [ ] Advanced item database with filters
-- [ ] AI integration (OpenAI/Claude API)
+### Phase 2: Core Features ✅
+- [x] Build detail pages with interactive skill trees
+- [x] Advanced item database with filters
+- [x] AI integration (OpenAI GPT-4o)
+- [x] Activity-specific tier ratings
+- [x] Performance optimizations
 - [ ] User authentication and profiles
 
 ### Phase 3: Advanced Features
