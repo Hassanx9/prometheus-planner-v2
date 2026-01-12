@@ -1,11 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
 // System prompt for build analysis
 const SYSTEM_PROMPT = `You are an expert ARPG (Action Role-Playing Game) build advisor specializing in Path of Exile 2 and Diablo IV. Your role is to analyze player builds and provide strategic optimization advice based on the latest meta, game mechanics, and community knowledge.
 
@@ -34,6 +29,11 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
+
+    // Initialize OpenAI client inside the function to avoid build-time errors
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
 
     const body = await request.json();
     const { message, buildData, context } = body;

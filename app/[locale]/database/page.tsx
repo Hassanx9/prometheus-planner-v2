@@ -1,5 +1,7 @@
 import { ItemDatabase } from '@/components/database/ItemDatabase';
 
+export const dynamic = 'force-dynamic';
+
 export default function DatabasePage() {
   return (
     <div className="min-h-screen bg-[#050506] text-gray-200">

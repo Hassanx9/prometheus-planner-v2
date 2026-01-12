@@ -1,5 +1,7 @@
 import { CommunityHub } from '@/components/community/CommunityHub';
 
+export const dynamic = 'force-dynamic';
+
 export default function CommunityPage() {
   return (
     <div className="min-h-screen bg-[#050506] text-gray-200">

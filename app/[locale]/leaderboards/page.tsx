@@ -1,5 +1,7 @@
 import { Leaderboards } from '@/components/leaderboards/Leaderboards';
 
+export const dynamic = 'force-dynamic';
+
 export default function LeaderboardsPage() {
   return (
     <div className="min-h-screen bg-[#050506] text-gray-200">

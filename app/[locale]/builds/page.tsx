@@ -1,5 +1,6 @@
-import { useTranslations } from 'next-intl';
 import { BuildList } from '@/components/builds/BuildList';
+
+export const dynamic = 'force-dynamic';
 
 export default function BuildsPage() {
   return (

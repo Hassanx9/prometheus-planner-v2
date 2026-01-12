@@ -1,6 +1,8 @@
 import { redirect } from 'next/navigation';
 import { AdminDashboard } from '@/components/admin/AdminDashboard';
 
+export const dynamic = 'force-dynamic';
+
 // TODO: Add authentication check
 // For now, this is a placeholder that will redirect if not authenticated
 

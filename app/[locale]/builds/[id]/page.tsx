@@ -2,6 +2,8 @@ import { BuildDetail } from '@/components/builds/BuildDetail';
 import { Build } from '@/types';
 import { generateBuildSEOMeta } from '@/lib/seo';
 
+export const dynamic = 'force-dynamic';
+
 // Mock build data - will be replaced with API/database call
 const mockBuild: Build = {
   id: '1',

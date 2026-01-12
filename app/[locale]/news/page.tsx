@@ -1,5 +1,7 @@
 import { NewsSection } from '@/components/news/NewsSection';
 
+export const dynamic = 'force-dynamic';
+
 export default function NewsPage() {
   return (
     <div className="min-h-screen bg-[#050506] text-gray-200">

@@ -1,5 +1,7 @@
 import { EconomyTracker } from '@/components/economy/EconomyTracker';
 
+export const dynamic = 'force-dynamic';
+
 export default function EconomyPage() {
   return (
     <div className="min-h-screen bg-[#050506] text-gray-200">
