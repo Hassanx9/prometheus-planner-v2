@@ -68,10 +68,10 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-[#050506] text-gray-200 font-sans selection:bg-[#c5a059]">
       
-      <main className="max-w-[1800px] mx-auto grid grid-cols-12 gap-4 p-4 h-[calc(100vh-85px)]">
+      <main className="max-w-[1800px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-4 p-4 pb-8">
         
         {/* SIDEBAR: ANALYTICS */}
-        <aside className="col-span-12 lg:col-span-3 space-y-4 overflow-y-auto pr-2 custom-scrollbar">
+        <aside className="lg:col-span-3 space-y-4">
           
           <section className="bg-[#141417] border border-[#3d3d43] p-5 rounded-sm relative bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')]">
             <h3 className="text-[#c5a059] font-serif text-[10px] uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
@@ -104,9 +104,9 @@ export default function HomePage() {
         </aside>
 
         {/* CENTER: INTERACTIVE TREE */}
-        <section className="col-span-12 lg:col-span-9 flex flex-col gap-4">
+        <section className="lg:col-span-9 flex flex-col gap-4">
           
-          <div className="flex-1 bg-[#0c0c0e] border border-[#3d3d43] relative overflow-hidden rounded-sm shadow-inner group">
+          <div className="min-h-[600px] bg-[#0c0c0e] border border-[#3d3d43] relative overflow-hidden rounded-sm shadow-inner group">
             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] opacity-20 pointer-events-none" />
             
             {/* SVG CONNECTION LINES */}

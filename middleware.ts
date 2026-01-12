@@ -6,10 +6,17 @@ export default createMiddleware({
   locales,
 
   // Used when no locale matches
-  defaultLocale
+  defaultLocale,
+  
+  // Always use locale prefix
+  localePrefix: 'always'
 });
 
 export const config = {
-  // Match only internationalized pathnames
-  matcher: ['/', '/(ar|en)/:path*']
+  // Match all pathnames except for
+  // - /api (API routes)
+  // - /_next (Next.js internals)
+  // - /_vercel (Vercel internals)
+  // - Static files (images, fonts, etc.)
+  matcher: ['/((?!api|_next|_vercel|.*\\..*).*)'],
 };
