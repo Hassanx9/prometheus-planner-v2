@@ -35,6 +35,9 @@ export const SkillTreeCanvas: React.FC<SkillTreeCanvasProps> = ({
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   
+  // Constants
+  const NODE_HIT_AREA_PADDING = 5;
+  
   // Store state
   const nodesById = useSkillTreeStore(state => state.nodesById);
   const connections = useSkillTreeStore(state => state.connections);
@@ -56,34 +59,40 @@ export const SkillTreeCanvas: React.FC<SkillTreeCanvasProps> = ({
   useEffect(() => {
     if (!canvasRef.current || appRef.current) return;
     
-    const app = new PIXI.Application();
+    const initializePixi = async () => {
+      try {
+        const app = new PIXI.Application();
+        
+        await app.init({
+          width,
+          height,
+          backgroundColor: 0x050506,
+          antialias: true,
+          autoDensity: true,
+          resolution: window.devicePixelRatio || 1,
+        });
+        
+        if (!canvasRef.current) return;
+        
+        canvasRef.current.appendChild(app.canvas as HTMLCanvasElement);
+        appRef.current = app;
+        
+        // Create main container
+        const container = new PIXI.Container();
+        app.stage.addChild(container);
+        containerRef.current = container;
+        
+        // Center the camera
+        centerCamera();
+        
+        // Initial render
+        renderSkillTree();
+      } catch (error) {
+        console.error('Failed to initialize PixiJS:', error);
+      }
+    };
     
-    (async () => {
-      await app.init({
-        width,
-        height,
-        backgroundColor: 0x050506,
-        antialias: true,
-        autoDensity: true,
-        resolution: window.devicePixelRatio || 1,
-      });
-      
-      if (!canvasRef.current) return;
-      
-      canvasRef.current.appendChild(app.canvas as HTMLCanvasElement);
-      appRef.current = app;
-      
-      // Create main container
-      const container = new PIXI.Container();
-      app.stage.addChild(container);
-      containerRef.current = container;
-      
-      // Center the camera
-      centerCamera();
-      
-      // Initial render
-      renderSkillTree();
-    })();
+    initializePixi();
     
     return () => {
       if (appRef.current) {
@@ -243,7 +252,7 @@ export const SkillTreeCanvas: React.FC<SkillTreeCanvasProps> = ({
       // Make interactive
       nodeGraphic.eventMode = 'static';
       nodeGraphic.cursor = 'pointer';
-      nodeGraphic.hitArea = new PIXI.Circle(node.x, node.y, radius + 5);
+      nodeGraphic.hitArea = new PIXI.Circle(node.x, node.y, radius + NODE_HIT_AREA_PADDING);
       
       nodeGraphic.on('pointerdown', () => {
         onNodeClick?.(nodeId);

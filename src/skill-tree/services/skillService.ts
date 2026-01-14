@@ -13,6 +13,9 @@ import type {
   SkillTreeClass,
 } from '../models/skill';
 
+// Constants for node sizing (should match SkillTreeCanvas)
+const NODE_RADIUS_APPROXIMATION = 20;
+
 /**
  * Spatial index for efficient viewport-based queries
  */
@@ -30,10 +33,10 @@ class SkillTreeIndex {
     const indexedNodes: IndexedNode[] = nodes.map(node => ({
       ...node,
       bbox: {
-        minX: node.x - 20, // Node radius approximation
-        minY: node.y - 20,
-        maxX: node.x + 20,
-        maxY: node.y + 20,
+        minX: node.x - NODE_RADIUS_APPROXIMATION,
+        minY: node.y - NODE_RADIUS_APPROXIMATION,
+        maxX: node.x + NODE_RADIUS_APPROXIMATION,
+        maxY: node.y + NODE_RADIUS_APPROXIMATION,
       },
     }));
     

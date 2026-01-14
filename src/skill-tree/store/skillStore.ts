@@ -396,6 +396,12 @@ export const useSkillTreeStore = create<SkillTreeStore>()(
         allocatedIds: Array.from(state.allocatedIds),
         totalPoints: state.totalPoints,
       }),
+      // Deserialize allocatedIds back to Set
+      merge: (persistedState: any, currentState) => ({
+        ...currentState,
+        ...persistedState,
+        allocatedIds: new Set(persistedState?.allocatedIds || []),
+      }),
     }
   )
 );

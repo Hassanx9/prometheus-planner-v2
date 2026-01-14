@@ -41,19 +41,15 @@ export const SkillTreePage: React.FC = () => {
         setIsLoading(true);
         const service = getSkillTreeService();
         
-        // Try to load from static file first
-        // Falls back to seed data if static file doesn't exist
         let data;
         try {
+          // Try to load from static file first
           data = await service.loadFromStatic('/static/skilltree.json');
         } catch {
-          // Fallback: load seed data
+          // Fallback to seed data if static file doesn't exist
           const seedData = await import('../data/seed/skilltree-seed.json');
           data = seedData.default;
-          await service.loadFromStatic('/static/skilltree.json').catch(() => {
-            // If static file doesn't exist, use seed data directly
-            console.log('Using seed data');
-          });
+          console.log('Using seed data (static file not available)');
         }
         
         loadSkillTree(data);
