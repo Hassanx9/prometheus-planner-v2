@@ -156,16 +156,16 @@ export const SkillTreePage: React.FC = () => {
   }
   
   return (
-    <div className="h-screen flex flex-col bg-[#050506]">
+    <div className="h-screen flex flex-col bg-gradient-to-b from-[#0d0f14] to-[#070809]">
       {/* Header */}
-      <div className="flex-shrink-0 bg-[#0c0c0e] border-b border-[#3d3d43] p-4">
-        <div className="max-w-[1900px] mx-auto flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-serif text-gradient-gold font-bold">
+      <div className="flex-shrink-0 bg-gradient-to-r from-[#0f1014] to-[#0a0b0f] border-b border-[#2a2d35] p-5 shadow-2xl">
+        <div className="max-w-[1900px] mx-auto flex items-center justify-between gap-6">
+          <div className="flex items-center gap-5">
+            <h1 className="text-2xl font-serif bg-gradient-to-r from-[#d4b16a] to-[#c5a059] bg-clip-text text-transparent font-bold">
               Interactive Skill Tree
             </h1>
-            <div className="flex items-center gap-2 text-sm text-gray-400">
-              <Info size={16} />
+            <div className="flex items-center gap-2.5 text-sm text-gray-500 bg-[#141417] px-4 py-2 border border-[#2a2d35]">
+              <Info size={16} className="text-[#d4b16a]" />
               <span>Click nodes to allocate | Drag to pan | Scroll to zoom</span>
             </div>
           </div>
@@ -176,7 +176,7 @@ export const SkillTreePage: React.FC = () => {
       {/* Main content */}
       <div className="flex-1 flex min-h-0">
         {/* Sidebar */}
-        <div className="flex-shrink-0 w-80 border-r border-[#3d3d43] overflow-y-auto custom-scrollbar">
+        <div className="flex-shrink-0 w-80 overflow-y-auto custom-scrollbar">
           <Toolbar
             onZoomIn={() => zoomRef.current.zoomIn()}
             onZoomOut={() => zoomRef.current.zoomOut()}
@@ -185,7 +185,7 @@ export const SkillTreePage: React.FC = () => {
         </div>
         
         {/* Canvas */}
-        <div className="flex-1 relative" ref={canvasContainerRef}>
+        <div className="flex-1 relative border-l border-[#2a2d35]" ref={canvasContainerRef}>
           {canvasWidth > 0 && canvasHeight > 0 && (
             <SkillTreeCanvas
               width={canvasWidth}
@@ -205,7 +205,7 @@ export const SkillTreePage: React.FC = () => {
                 top: tooltipPosition.y,
               }}
             >
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex items-center gap-2.5 mb-3">
                 <h3>{hoveredNode.name}</h3>
                 <span className={`node-type-badge node-type-${hoveredNode.type}`}>
                   {hoveredNode.type}
@@ -221,12 +221,12 @@ export const SkillTreePage: React.FC = () => {
                   ))}
                 </ul>
               )}
-              <div className="mt-3 pt-3 border-t border-[#3d3d43]">
-                <p className="text-xs text-gray-500">
+              <div className="mt-3 pt-3 border-t border-[#2a2d35]">
+                <p className="text-xs">
                   {isAllocated(hoveredNode.id) ? (
-                    <span className="text-[#c5a059]">✓ Allocated</span>
+                    <span className="text-[#88e3f5] font-semibold">✓ Allocated</span>
                   ) : (
-                    <span>Click to allocate</span>
+                    <span className="text-gray-600">Click to allocate</span>
                   )}
                 </p>
               </div>
