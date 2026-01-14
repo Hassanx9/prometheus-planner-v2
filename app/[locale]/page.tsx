@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { 
   Sparkles, TrendingUp, Users, Trophy, BookOpen, 
   Zap, Target, Shield, Swords, ChevronRight, Star,
-  TrendingDown, Clock, Eye, Gamepad2
+  TrendingDown, Clock, Eye, Gamepad2, Play,
+  Info, Code, Heart
 } from 'lucide-react';
 import Link from 'next/link';
 import { useLocale } from 'next-intl';
@@ -16,6 +17,14 @@ export default function HomePage() {
   const t = useTranslations('common');
   const locale = useLocale();
   const [selectedGame, setSelectedGame] = useState<Game | null>(null);
+
+  // Load selected game from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('selectedGame');
+    if (saved && (saved === 'PoE 2' || saved === 'Diablo IV')) {
+      setSelectedGame(saved);
+    }
+  }, []);
 
   // Mock data for featured builds
   const featuredBuilds = [
@@ -361,6 +370,116 @@ export default function HomePage() {
           </div>
         </div>
 
+        {/* Tutorial Video Section */}
+        <section className="py-16 bg-gradient-to-r from-[#1a1c2e]/50 to-[#0f1116]/50">
+          <div className="max-w-[1600px] mx-auto px-8">
+            <div className="text-center mb-12">
+              <h2 className="text-4xl font-bold text-white mb-4">Getting Started</h2>
+              <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+                Watch our comprehensive tutorial to master build planning and optimization.
+              </p>
+            </div>
+
+            <div className="max-w-4xl mx-auto">
+              <div className="relative bg-[#1a1c2e] rounded-2xl border border-[#3d3d43] overflow-hidden shadow-premium-xl">
+                <div className="aspect-video bg-gradient-to-br from-[#0f1116] to-[#1a1c2e] flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-[#c5a059] to-[#d4b16a] rounded-full flex items-center justify-center shadow-lg">
+                      <Play size={40} className="text-black ml-1" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-white mb-2">Build Planning Masterclass</h3>
+                    <p className="text-gray-400 mb-6">Learn advanced strategies and optimization techniques</p>
+                    <button className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-[#c5a059] to-[#d4b16a] text-black font-bold rounded-xl hover:shadow-lg hover:shadow-[#c5a059]/30 transition-all">
+                      <Play size={20} />
+                      Watch Tutorial (15 min)
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* About Section */}
+        <section className="py-16">
+          <div className="max-w-[1600px] mx-auto px-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+              <div>
+                <div className="inline-flex items-center gap-2 bg-[#c5a059]/10 border border-[#c5a059]/30 px-4 py-2 rounded-full mb-6">
+                  <Code className="text-[#c5a059]" size={16} />
+                  <span className="text-sm font-bold text-[#c5a059] uppercase tracking-wider">
+                    About Prometheus
+                  </span>
+                </div>
+                
+                <h2 className="text-4xl font-bold text-white mb-6">
+                  Modern ARPG Build Planning
+                  <span className="block text-[#c5a059]">Under Active Development</span>
+                </h2>
+                
+                <p className="text-lg text-gray-300 mb-6 leading-relaxed">
+                  Prometheus is a cutting-edge build planning platform designed specifically for Path of Exile 2 and Diablo IV. 
+                  We're committed to providing the most comprehensive and user-friendly experience for ARPG enthusiasts.
+                </p>
+
+                <div className="space-y-4 mb-8">
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 bg-[#c5a059] rounded-full"></div>
+                    <span className="text-gray-300">Advanced AI-powered build analysis</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 bg-[#c5a059] rounded-full"></div>
+                    <span className="text-gray-300">Community-driven content and guides</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 bg-[#c5a059] rounded-full"></div>
+                    <span className="text-gray-300">Real-time market data integration</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 bg-[#c5a059] rounded-full"></div>
+                    <span className="text-gray-300">Multi-language support (English & Arabic)</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <Heart className="text-red-500" size={20} />
+                    <span className="text-gray-400">Built with passion by gamers</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="relative">
+                <div className="bg-gradient-to-br from-[#1a1c2e] to-[#0f1116] border border-[#3d3d43] rounded-2xl p-8 shadow-premium-xl">
+                  <div className="text-center mb-6">
+                    <h3 className="text-2xl font-bold text-white mb-2">Development Roadmap</h3>
+                    <p className="text-gray-400">What's coming next</p>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3 p-3 bg-[#c5a059]/10 border border-[#c5a059]/30 rounded-lg">
+                      <div className="w-3 h-3 bg-[#c5a059] rounded-full animate-pulse"></div>
+                      <span className="text-[#c5a059] font-medium">Interactive Skill Tree Builder</span>
+                    </div>
+                    <div className="flex items-center gap-3 p-3 bg-gray-500/10 border border-gray-500/30 rounded-lg">
+                      <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
+                      <span className="text-gray-400">Advanced Crafting Calculator</span>
+                    </div>
+                    <div className="flex items-center gap-3 p-3 bg-gray-500/10 border border-gray-500/30 rounded-lg">
+                      <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
+                      <span className="text-gray-400">Live Stream Integration</span>
+                    </div>
+                    <div className="flex items-center gap-3 p-3 bg-gray-500/10 border border-gray-500/30 rounded-lg">
+                      <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
+                      <span className="text-gray-400">Mobile App Release</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Classes & Builds Section */}
         <section className="py-16">
           <div className="max-w-[1600px] mx-auto px-8">
@@ -372,17 +491,20 @@ export default function HomePage() {
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 mb-8">
-              {gameClasses[selectedGame].map((cls) => (
-                <Link
-                  key={cls.name}
-                  href={`/${locale}/builds?class=${encodeURIComponent(cls.name)}&game=${encodeURIComponent(selectedGame)}`}
-                  className="group bg-[#1a1c2e] rounded-xl border border-[#3d3d43] hover:border-[#c5a059] p-6 transition-all hover:scale-105 hover:shadow-premium-lg text-center"
-                >
-                  <div className="text-4xl mb-4">{cls.icon}</div>
-                  <h3 className="text-lg font-bold text-white mb-2">{cls.name}</h3>
-                  <p className="text-sm text-gray-400">{cls.buildCount} builds</p>
-                </Link>
-              ))}
+              {Object.entries(gameClasses).map(([game, classes]) => 
+                classes.map((cls) => (
+                  <Link
+                    key={`${game}-${cls.name}`}
+                    href={`/${locale}/builds?class=${encodeURIComponent(cls.name)}&game=${encodeURIComponent(game)}`}
+                    className="group bg-[#1a1c2e] rounded-xl border border-[#3d3d43] hover:border-[#c5a059] p-6 transition-all hover:scale-105 hover:shadow-premium-lg text-center"
+                  >
+                    <div className="text-4xl mb-4">{cls.icon}</div>
+                    <h3 className="text-lg font-bold text-white mb-2">{cls.name}</h3>
+                    <p className="text-sm text-gray-400">{cls.buildCount} builds</p>
+                    <span className="text-xs text-[#c5a059] mt-1 block">{game}</span>
+                  </Link>
+                ))
+              ).flat()}
             </div>
 
             <div className="text-center">
@@ -586,8 +708,6 @@ export default function HomePage() {
         </div>
 
       </section>
-        </>
-      )}
     </div>
   );
 }
