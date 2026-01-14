@@ -88,9 +88,10 @@ const mockBuild: Build = {
   },
 };
 
-export async function generateMetadata({ params }: { params: { id: string; locale: string } }) {
+export async function generateMetadata({ params }: { params: Promise<{ id: string; locale: string }> }) {
+  const { locale } = await params;
   // In production, fetch build from database/API
-  const seoMeta = generateBuildSEOMeta(mockBuild, params.locale);
+  const seoMeta = generateBuildSEOMeta(mockBuild, locale);
   
   return {
     ...seoMeta,

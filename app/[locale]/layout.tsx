@@ -7,7 +7,8 @@ import { Navigation } from '@/components/Navigation';
 
 export const dynamic = 'force-dynamic';
 
-export async function generateMetadata({ params: { locale } }: { params: { locale: string } }) {
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
   return {
     title: 'Prometheus - ARPG Build Planner',
     description: 'Strategic Build Planner for Path of Exile 2 and Diablo IV',
@@ -16,11 +17,12 @@ export async function generateMetadata({ params: { locale } }: { params: { local
 
 export default async function LocaleLayout({
   children,
-  params: { locale }
+  params
 }: {
   children: React.ReactNode;
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
 }) {
+  const { locale } = await params;
   // Validate locale
   if (!locales.includes(locale as any)) {
     notFound();
