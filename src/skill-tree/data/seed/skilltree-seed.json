@@ -1,0 +1,201 @@
+{
+  "version": "1.0.0",
+  "classes": [
+    {
+      "id": "warrior",
+      "name": "Warrior",
+      "description": "A melee fighter with strength-based abilities",
+      "startNodeId": "warrior_start",
+      "color": "#c53030"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "warrior_start",
+      "name": "Warrior Start",
+      "description": "Starting position for Warrior class",
+      "x": 0,
+      "y": 0,
+      "type": "start",
+      "stats": [
+        { "type": "strength", "name": "+10 Strength", "value": 10 }
+      ],
+      "connectedTo": ["node_1", "node_2", "node_3"],
+      "classRequirement": "warrior",
+      "pointCost": 0,
+      "isRoot": true
+    },
+    {
+      "id": "node_1",
+      "name": "Might",
+      "description": "Increases physical damage",
+      "x": 100,
+      "y": 0,
+      "type": "small",
+      "stats": [
+        { "type": "damage", "name": "+5% Physical Damage", "value": 5, "isPercent": true }
+      ],
+      "connectedTo": ["warrior_start", "node_4"],
+      "pointCost": 1
+    },
+    {
+      "id": "node_2",
+      "name": "Vitality",
+      "description": "Increases maximum life",
+      "x": 0,
+      "y": 100,
+      "type": "small",
+      "stats": [
+        { "type": "life", "name": "+15 Maximum Life", "value": 15 }
+      ],
+      "connectedTo": ["warrior_start", "node_5"],
+      "pointCost": 1
+    },
+    {
+      "id": "node_3",
+      "name": "Fortitude",
+      "description": "Increases armor",
+      "x": -100,
+      "y": 0,
+      "type": "small",
+      "stats": [
+        { "type": "defense", "name": "+10% Armor", "value": 10, "isPercent": true }
+      ],
+      "connectedTo": ["warrior_start", "node_6"],
+      "pointCost": 1
+    },
+    {
+      "id": "node_4",
+      "name": "Crushing Blows",
+      "description": "Notable: Greatly increases physical damage",
+      "x": 200,
+      "y": 0,
+      "type": "notable",
+      "stats": [
+        { "type": "damage", "name": "+15% Physical Damage", "value": 15, "isPercent": true },
+        { "type": "strength", "name": "+5 Strength", "value": 5 }
+      ],
+      "connectedTo": ["node_1", "node_7"],
+      "pointCost": 1
+    },
+    {
+      "id": "node_5",
+      "name": "Iron Flesh",
+      "description": "Notable: Significantly increases life",
+      "x": 0,
+      "y": 200,
+      "type": "notable",
+      "stats": [
+        { "type": "life", "name": "+40 Maximum Life", "value": 40 },
+        { "type": "defense", "name": "+5% Maximum Life", "value": 5, "isPercent": true }
+      ],
+      "connectedTo": ["node_2", "node_8"],
+      "pointCost": 1
+    },
+    {
+      "id": "node_6",
+      "name": "Steel Skin",
+      "description": "Notable: Greatly increases defenses",
+      "x": -200,
+      "y": 0,
+      "type": "notable",
+      "stats": [
+        { "type": "defense", "name": "+25% Armor", "value": 25, "isPercent": true },
+        { "type": "defense", "name": "+5% Block Chance", "value": 5, "isPercent": true }
+      ],
+      "connectedTo": ["node_3", "node_9"],
+      "pointCost": 1
+    },
+    {
+      "id": "node_7",
+      "name": "Berserker's Rage",
+      "description": "Keystone: Massive damage increase, reduced defense",
+      "x": 300,
+      "y": 0,
+      "type": "keystone",
+      "stats": [
+        { "type": "damage", "name": "+40% Physical Damage", "value": 40, "isPercent": true },
+        { "type": "defense", "name": "-20% Armor", "value": -20, "isPercent": true },
+        { "type": "damage", "name": "+10% Attack Speed", "value": 10, "isPercent": true }
+      ],
+      "connectedTo": ["node_4", "node_10"],
+      "pointCost": 1
+    },
+    {
+      "id": "node_8",
+      "name": "Regeneration",
+      "description": "Life regeneration",
+      "x": 100,
+      "y": 200,
+      "type": "small",
+      "stats": [
+        { "type": "life", "name": "+1% Life Regeneration per second", "value": 1, "isPercent": true }
+      ],
+      "connectedTo": ["node_5", "node_10"],
+      "pointCost": 1
+    },
+    {
+      "id": "node_9",
+      "name": "Shield Mastery",
+      "description": "Block effectiveness",
+      "x": -100,
+      "y": 100,
+      "type": "small",
+      "stats": [
+        { "type": "defense", "name": "+3% Block Chance", "value": 3, "isPercent": true }
+      ],
+      "connectedTo": ["node_6", "node_11"],
+      "pointCost": 1
+    },
+    {
+      "id": "node_10",
+      "name": "Battle Hardened",
+      "description": "Notable: Balanced offense and defense",
+      "x": 200,
+      "y": 100,
+      "type": "notable",
+      "stats": [
+        { "type": "damage", "name": "+10% Physical Damage", "value": 10, "isPercent": true },
+        { "type": "life", "name": "+20 Maximum Life", "value": 20 },
+        { "type": "defense", "name": "+5% Armor", "value": 5, "isPercent": true }
+      ],
+      "connectedTo": ["node_7", "node_8"],
+      "pointCost": 1
+    },
+    {
+      "id": "node_11",
+      "name": "Defensive Stance",
+      "description": "Keystone: Greatly increases defenses",
+      "x": -200,
+      "y": 150,
+      "type": "keystone",
+      "stats": [
+        { "type": "defense", "name": "+50% Armor", "value": 50, "isPercent": true },
+        { "type": "defense", "name": "+10% Block Chance", "value": 10, "isPercent": true },
+        { "type": "speed", "name": "-10% Movement Speed", "value": -10, "isPercent": true }
+      ],
+      "connectedTo": ["node_9"],
+      "pointCost": 1
+    }
+  ],
+  "connections": [
+    { "from": "warrior_start", "to": "node_1" },
+    { "from": "warrior_start", "to": "node_2" },
+    { "from": "warrior_start", "to": "node_3" },
+    { "from": "node_1", "to": "node_4" },
+    { "from": "node_2", "to": "node_5" },
+    { "from": "node_3", "to": "node_6" },
+    { "from": "node_4", "to": "node_7" },
+    { "from": "node_5", "to": "node_8" },
+    { "from": "node_6", "to": "node_9" },
+    { "from": "node_7", "to": "node_10" },
+    { "from": "node_8", "to": "node_10" },
+    { "from": "node_9", "to": "node_11" }
+  ],
+  "bounds": {
+    "minX": -250,
+    "minY": -50,
+    "maxX": 350,
+    "maxY": 250
+  }
+}

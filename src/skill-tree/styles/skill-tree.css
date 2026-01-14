@@ -1,0 +1,185 @@
+/**
+ * Skill Tree Styles
+ * Custom styles for skill tree components
+ */
+
+.skill-tree-canvas {
+  background: radial-gradient(ellipse at center, #0a0b0f 0%, #050506 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.skill-tree-canvas canvas {
+  display: block;
+}
+
+/* Node tooltip */
+.skill-tree-tooltip {
+  position: absolute;
+  z-index: 1000;
+  background: rgba(12, 12, 14, 0.98);
+  border: 1px solid #c5a059;
+  padding: 1rem;
+  max-width: 320px;
+  pointer-events: none;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(197, 160, 89, 0.2);
+}
+
+.skill-tree-tooltip h3 {
+  color: #c5a059;
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.skill-tree-tooltip p {
+  color: #9ca3af;
+  font-size: 0.875rem;
+  margin-bottom: 0.75rem;
+}
+
+.skill-tree-tooltip ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.skill-tree-tooltip li {
+  color: #7ecce0;
+  font-size: 0.875rem;
+  padding: 0.25rem 0;
+}
+
+.skill-tree-tooltip li::before {
+  content: "• ";
+  color: #c5a059;
+  font-weight: bold;
+  margin-right: 0.5rem;
+}
+
+/* Loading state */
+.skill-tree-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  background: #050506;
+}
+
+.skill-tree-loading-spinner {
+  width: 60px;
+  height: 60px;
+  border: 4px solid #3d3d43;
+  border-top-color: #c5a059;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Node type indicators */
+.node-type-badge {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  border-radius: 2px;
+}
+
+.node-type-small {
+  background: #3d3d43;
+  color: #9ca3af;
+}
+
+.node-type-notable {
+  background: #7ecce0;
+  color: #000;
+}
+
+.node-type-keystone {
+  background: #c5a059;
+  color: #000;
+}
+
+.node-type-start {
+  background: #fff;
+  color: #000;
+}
+
+/* Allocation animation */
+@keyframes nodeAllocate {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.3);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.node-allocated {
+  animation: nodeAllocate 0.3s ease-out;
+}
+
+/* Connection highlight */
+.connection-active {
+  stroke: #c5a059;
+  stroke-width: 3px;
+  filter: drop-shadow(0 0 4px rgba(197, 160, 89, 0.6));
+}
+
+.connection-inactive {
+  stroke: #3d3d43;
+  stroke-width: 2px;
+  opacity: 0.5;
+}
+
+/* Grid background (optional) */
+.skill-tree-grid {
+  background-image: 
+    linear-gradient(rgba(61, 61, 67, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(61, 61, 67, 0.1) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+
+/* Minimap (future enhancement) */
+.skill-tree-minimap {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  width: 200px;
+  height: 150px;
+  background: rgba(12, 12, 14, 0.9);
+  border: 1px solid #3d3d43;
+  opacity: 0.8;
+  transition: opacity 0.3s;
+}
+
+.skill-tree-minimap:hover {
+  opacity: 1;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .skill-tree-tooltip {
+    max-width: 280px;
+    font-size: 0.8125rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .skill-tree-canvas {
+    touch-action: none;
+  }
+  
+  .skill-tree-tooltip {
+    max-width: 240px;
+  }
+}
