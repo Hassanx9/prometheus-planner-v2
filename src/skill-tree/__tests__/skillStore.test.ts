@@ -68,12 +68,13 @@ describe('SkillTreeStore', () => {
   
   describe('loadSkillTree', () => {
     it('should load skill tree data', () => {
-      const { loadSkillTree, nodesById } = useSkillTreeStore.getState();
+      const { loadSkillTree } = useSkillTreeStore.getState();
       
       loadSkillTree(mockSkillTree);
       
-      expect(nodesById.size).toBe(3);
-      expect(nodesById.get('start')).toBeDefined();
+      const state = useSkillTreeStore.getState();
+      expect(state.nodesById.size).toBe(3);
+      expect(state.nodesById.get('start')).toBeDefined();
     });
   });
   

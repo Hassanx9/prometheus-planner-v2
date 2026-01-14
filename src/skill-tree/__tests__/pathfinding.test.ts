@@ -83,8 +83,18 @@ describe('Pathfinding', () => {
     });
     
     it('should return null for unreachable node', () => {
+      // Create an isolated node without any connection to allocated nodes
+      nodesById.set('isolated', {
+        id: 'isolated',
+        name: 'Isolated',
+        x: 500,
+        y: 500,
+        type: 'small',
+        connectedTo: [],
+      });
+      
       const allocatedIds = new Set(['d']); // Only d is allocated
-      const path = findShortestPath('c', allocatedIds, nodesById, connections);
+      const path = findShortestPath('isolated', allocatedIds, nodesById, connections);
       
       expect(path).toBeNull();
     });
