@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
+import { useSearchParams } from 'next/navigation';
 import { Search, Filter, Package } from 'lucide-react';
 
 // Mock data
@@ -34,8 +35,19 @@ const mockItems = [
 
 export function ItemDatabase() {
   const t = useTranslations('database');
+  const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState<string | null>(null);
+  const [selectedGame, setSelectedGame] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
+  // Initialize filters from URL params
+  useEffect(() => {
+    const game = searchParams.get('game');
+    const category = searchParams.get('category');
+    if (game) setSelectedGame(game);
+    if (category) setSelectedCategory(category);
+  }, [searchParams]);
 
   const filteredItems = mockItems.filter((item) => {
     if (searchQuery && !item.name.toLowerCase().includes(searchQuery.toLowerCase())) {
@@ -43,6 +55,21 @@ export function ItemDatabase() {
     }
     if (selectedType && item.type !== selectedType) {
       return false;
+    }
+    if (selectedGame && item.game !== selectedGame) {
+      return false;
+    }
+    // For category, map to item properties (weapons, armor, jewelry)
+    if (selectedCategory) {
+      // This is a simple mapping - in real app, items would have category field
+      const categoryMap: { [key: string]: string[] } = {
+        weapons: ['Sword', 'Bow', 'Staff', 'Dagger'],
+        armor: ['Helmet', 'Chest', 'Gloves', 'Boots'],
+        jewelry: ['Ring', 'Amulet', 'Belt']
+      };
+      if (categoryMap[selectedCategory] && !categoryMap[selectedCategory].some(cat => item.name.includes(cat))) {
+        return false;
+      }
     }
     return true;
   });

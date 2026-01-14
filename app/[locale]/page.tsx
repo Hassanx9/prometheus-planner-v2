@@ -1,18 +1,21 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { 
   Sparkles, TrendingUp, Users, Trophy, BookOpen, 
   Zap, Target, Shield, Swords, ChevronRight, Star,
-  TrendingDown, Clock, Eye
+  TrendingDown, Clock, Eye, Gamepad2
 } from 'lucide-react';
 import Link from 'next/link';
 import { useLocale } from 'next-intl';
 
+type Game = 'PoE 2' | 'Diablo IV';
+
 export default function HomePage() {
   const t = useTranslations('common');
   const locale = useLocale();
+  const [selectedGame, setSelectedGame] = useState<Game | null>(null);
 
   // Mock data for featured builds
   const featuredBuilds = [
@@ -26,6 +29,7 @@ export default function HomePage() {
       image: 'https://images.unsplash.com/photo-1614732414444-096e5f1122d5?w=400',
       author: 'Mathil',
       tags: ['Early Game', 'SSF Viable', 'Endgame'],
+      game: 'PoE 2' as Game,
     },
     {
       id: 2,
@@ -37,6 +41,7 @@ export default function HomePage() {
       image: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?w=400',
       author: 'Zizaran',
       tags: ['League Start', 'HC Viable'],
+      game: 'PoE 2' as Game,
     },
     {
       id: 3,
@@ -48,6 +53,7 @@ export default function HomePage() {
       image: 'https://images.unsplash.com/photo-1534670007418-fbb7f6cf32c3?w=400',
       author: 'Grimro',
       tags: ['Budget', 'Fast Clear'],
+      game: 'Diablo IV' as Game,
     },
     {
       id: 4,
@@ -59,6 +65,7 @@ export default function HomePage() {
       image: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?w=400',
       author: 'Waggle',
       tags: ['Damage', 'Magic Find'],
+      game: 'PoE 2' as Game,
     },
   ];
 
@@ -76,8 +83,125 @@ export default function HomePage() {
     { name: 'Ranger', popularity: 15, trend: 'up', color: '#2ecc71' },
   ];
 
+  // Game-specific classes
+  const gameClasses = {
+    'PoE 2': [
+      { name: 'Mercenary', icon: '⚔️', buildCount: 45 },
+      { name: 'Sorcerer', icon: '🔮', buildCount: 38 },
+      { name: 'Witch', icon: '🧙‍♀️', buildCount: 32 },
+      { name: 'Warrior', icon: '🛡️', buildCount: 28 },
+      { name: 'Ranger', icon: '🏹', buildCount: 25 },
+      { name: 'Monk', icon: '🥋', buildCount: 22 },
+    ],
+    'Diablo IV': [
+      { name: 'Barbarian', icon: '💪', buildCount: 28 },
+      { name: 'Sorcerer', icon: '🔮', buildCount: 24 },
+      { name: 'Rogue', icon: '🗡️', buildCount: 20 },
+      { name: 'Druid', icon: '🌿', buildCount: 18 },
+      { name: 'Necromancer', icon: '💀', buildCount: 16 },
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0a0b0f] via-[#050506] to-[#0a0b0f]">
+      
+      {/* Game Selection */}
+      {!selectedGame && (
+        <section className="min-h-screen flex items-center justify-center px-8">
+          <div className="max-w-4xl mx-auto text-center">
+            <h1 className="text-5xl md:text-7xl font-bold bg-gradient-to-r from-[#c5a059] via-[#d4b16a] to-[#c5a059] bg-clip-text text-transparent mb-8">
+              Choose Your Game
+            </h1>
+            <p className="text-xl text-gray-400 mb-12 max-w-2xl mx-auto">
+              Select your preferred ARPG to access specialized build guides, item databases, and community resources.
+            </p>
+            
+            <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
+              {/* PoE 2 Card */}
+              <button
+                onClick={() => setSelectedGame('PoE 2')}
+                className="group relative overflow-hidden bg-gradient-to-br from-[#1a1c2e] to-[#0f1116] border border-[#3d3d43] hover:border-[#c5a059] p-8 rounded-2xl transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-[#c5a059]/20"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-[#c5a059]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="relative">
+                  <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-[#c5a059] to-[#d4b16a] rounded-2xl flex items-center justify-center shadow-lg">
+                    <Swords className="text-white" size={40} />
+                  </div>
+                  <h3 className="text-2xl font-bold text-white mb-4">Path of Exile 2</h3>
+                  <p className="text-gray-400 mb-6">
+                    Deep, complex builds with intricate skill trees and endless possibilities.
+                  </p>
+                  <div className="flex items-center justify-center gap-4 text-sm text-gray-500">
+                    <span className="flex items-center gap-1">
+                      <Users size={14} />
+                      Active Community
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <BookOpen size={14} />
+                      500+ Builds
+                    </span>
+                  </div>
+                </div>
+              </button>
+
+              {/* Diablo IV Card */}
+              <button
+                onClick={() => setSelectedGame('Diablo IV')}
+                className="group relative overflow-hidden bg-gradient-to-br from-[#1a1c2e] to-[#0f1116] border border-[#3d3d43] hover:border-[#c5a059] p-8 rounded-2xl transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-[#c5a059]/20"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-[#c5a059]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="relative">
+                  <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-[#c5a059] to-[#d4b16a] rounded-2xl flex items-center justify-center shadow-lg">
+                    <Gamepad2 className="text-white" size={40} />
+                  </div>
+                  <h3 className="text-2xl font-bold text-white mb-4">Diablo IV</h3>
+                  <p className="text-gray-400 mb-6">
+                    Fast-paced action with class specialization and seasonal content.
+                  </p>
+                  <div className="flex items-center justify-center gap-4 text-sm text-gray-500">
+                    <span className="flex items-center gap-1">
+                      <Users size={14} />
+                      Growing Community
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <BookOpen size={14} />
+                      200+ Builds
+                    </span>
+                  </div>
+                </div>
+              </button>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {selectedGame && (
+        <>
+          {/* Game Header */}
+          <section className="bg-gradient-to-r from-[#1a1c2e] to-[#0f1116] border-b border-[#3d3d43]/50 py-6">
+            <div className="max-w-[1600px] mx-auto px-8">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={() => setSelectedGame(null)}
+                    className="flex items-center gap-2 px-4 py-2 bg-[#c5a059]/10 hover:bg-[#c5a059]/20 border border-[#c5a059]/30 hover:border-[#c5a059] text-[#c5a059] rounded-lg transition-all"
+                  >
+                    <ChevronRight className="rotate-180" size={16} />
+                    Change Game
+                  </button>
+                  <div className="h-8 w-px bg-[#3d3d43]"></div>
+                  <div className="flex items-center gap-3">
+                    {selectedGame === 'PoE 2' ? (
+                      <Swords className="text-[#c5a059]" size={24} />
+                    ) : (
+                      <Gamepad2 className="text-[#c5a059]" size={24} />
+                    )}
+                    <h1 className="text-2xl font-bold text-white">{selectedGame}</h1>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
       
       {/* HERO BANNER */}
       <section className="relative h-[500px] overflow-hidden">
@@ -173,7 +297,7 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {featuredBuilds.map((build) => (
+            {featuredBuilds.filter(build => build.game === selectedGame).map((build) => (
               <div 
                 key={build.id}
                 className="group bg-[#1a1c2e] rounded-xl overflow-hidden border border-[#3d3d43] hover:border-[#c5a059] transition-all shadow-premium hover:shadow-premium-lg cursor-pointer"
@@ -236,6 +360,93 @@ export default function HomePage() {
             ))}
           </div>
         </div>
+
+        {/* Classes & Builds Section */}
+        <section className="py-16">
+          <div className="max-w-[1600px] mx-auto px-8">
+            <div className="text-center mb-12">
+              <h2 className="text-4xl font-bold text-white mb-4">Classes & Builds</h2>
+              <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+                Explore all available classes and discover community-recommended builds for each.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 mb-8">
+              {gameClasses[selectedGame].map((cls) => (
+                <Link
+                  key={cls.name}
+                  href={`/${locale}/builds?class=${encodeURIComponent(cls.name)}&game=${encodeURIComponent(selectedGame)}`}
+                  className="group bg-[#1a1c2e] rounded-xl border border-[#3d3d43] hover:border-[#c5a059] p-6 transition-all hover:scale-105 hover:shadow-premium-lg text-center"
+                >
+                  <div className="text-4xl mb-4">{cls.icon}</div>
+                  <h3 className="text-lg font-bold text-white mb-2">{cls.name}</h3>
+                  <p className="text-sm text-gray-400">{cls.buildCount} builds</p>
+                </Link>
+              ))}
+            </div>
+
+            <div className="text-center">
+              <Link
+                href={`/${locale}/builds`}
+                className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-[#c5a059] to-[#d4b16a] text-black font-bold rounded-xl hover:shadow-lg hover:shadow-[#c5a059]/30 transition-all"
+              >
+                View All Builds
+                <ChevronRight size={20} />
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* Item Database Section */}
+        <section className="py-16 bg-gradient-to-r from-[#1a1c2e]/50 to-[#0f1116]/50">
+          <div className="max-w-[1600px] mx-auto px-8">
+            <div className="text-center mb-12">
+              <h2 className="text-4xl font-bold text-white mb-4">Item Database</h2>
+              <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+                Comprehensive database of all weapons, armor, jewelry, and more.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <Link
+                href={`/${locale}/database?category=weapons&game=${encodeURIComponent(selectedGame)}`}
+                className="group bg-[#1a1c2e] rounded-xl border border-[#3d3d43] hover:border-[#c5a059] p-8 transition-all hover:scale-105 hover:shadow-premium-lg text-center"
+              >
+                <div className="text-6xl mb-4">⚔️</div>
+                <h3 className="text-2xl font-bold text-white mb-2">Weapons</h3>
+                <p className="text-gray-400">Swords, bows, staves, and more</p>
+              </Link>
+
+              <Link
+                href={`/${locale}/database?category=armor&game=${encodeURIComponent(selectedGame)}`}
+                className="group bg-[#1a1c2e] rounded-xl border border-[#3d3d43] hover:border-[#c5a059] p-8 transition-all hover:scale-105 hover:shadow-premium-lg text-center"
+              >
+                <div className="text-6xl mb-4">🛡️</div>
+                <h3 className="text-2xl font-bold text-white mb-2">Armor</h3>
+                <p className="text-gray-400">Helmets, chests, gloves, boots</p>
+              </Link>
+
+              <Link
+                href={`/${locale}/database?category=jewelry&game=${encodeURIComponent(selectedGame)}`}
+                className="group bg-[#1a1c2e] rounded-xl border border-[#3d3d43] hover:border-[#c5a059] p-8 transition-all hover:scale-105 hover:shadow-premium-lg text-center"
+              >
+                <div className="text-6xl mb-4">💍</div>
+                <h3 className="text-2xl font-bold text-white mb-2">Jewelry</h3>
+                <p className="text-gray-400">Rings, amulets, belts</p>
+              </Link>
+            </div>
+
+            <div className="text-center mt-8">
+              <Link
+                href={`/${locale}/database`}
+                className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-[#c5a059] to-[#d4b16a] text-black font-bold rounded-xl hover:shadow-lg hover:shadow-[#c5a059]/30 transition-all"
+              >
+                Browse Full Database
+                <ChevronRight size={20} />
+              </Link>
+            </div>
+          </div>
+        </section>
 
         {/* Two Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -375,6 +586,8 @@ export default function HomePage() {
         </div>
 
       </section>
+        </>
+      )}
     </div>
   );
 }

@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { BookOpen, TrendingUp, ThumbsUp, Eye, Clock } from 'lucide-react';
 import { clsx } from 'clsx';
@@ -85,14 +86,25 @@ const tierColors = {
 
 export function BuildList() {
   const t = useTranslations('builds');
+  const searchParams = useSearchParams();
   const [selectedTier, setSelectedTier] = useState<string | null>(null);
   const [selectedGame, setSelectedGame] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedClass, setSelectedClass] = useState<string | null>(null);
+
+  // Initialize filters from URL params
+  useEffect(() => {
+    const game = searchParams.get('game');
+    const cls = searchParams.get('class');
+    if (game) setSelectedGame(game);
+    if (cls) setSelectedClass(cls);
+  }, [searchParams]);
 
   const filteredBuilds = mockBuilds.filter((build) => {
     if (selectedTier && build.tier !== selectedTier) return false;
     if (selectedGame && build.game !== selectedGame) return false;
     if (selectedCategory && build.category !== selectedCategory) return false;
+    if (selectedClass && build.class !== selectedClass) return false;
     return true;
   });
 
