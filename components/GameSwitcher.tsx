@@ -31,11 +31,6 @@ export function GameSwitcher() {
     { id: 'Diablo IV', name: 'Diablo IV', icon: Gamepad2 },
   ];
 
-  const games = [
-    { id: 'PoE 2', name: 'Path of Exile 2', icon: Swords },
-    { id: 'Diablo IV', name: 'Diablo IV', icon: Gamepad2 },
-  ];
-
   return (
     <div className="relative">
       <button
