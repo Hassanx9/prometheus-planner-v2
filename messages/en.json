@@ -26,6 +26,7 @@
   },
   "nav": {
     "home": "Home",
+    "buildPlanner": "Build Planner",
     "builds": "Builds",
     "database": "Database",
     "aiGuide": "AI Guide",

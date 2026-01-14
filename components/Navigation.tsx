@@ -26,7 +26,7 @@ export function Navigation() {
 
   const navItems = [
     { href: `/${locale}`, label: t('home'), icon: Sword },
-    { href: `/${locale}/build-planner`, label: 'Build Planner', icon: BookOpen },
+    { href: `/${locale}/build-planner`, label: t('buildPlanner'), icon: BookOpen },
     { href: `/${locale}/builds`, label: t('builds'), icon: BookOpen },
     { href: `/${locale}/database`, label: t('database'), icon: BookOpen },
     { href: `/${locale}/ai`, label: t('aiGuide'), icon: Bot },
