@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useLocale } from 'next-intl';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 type Game = 'PoE 2' | 'Diablo IV';
 
@@ -112,11 +113,12 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0a0b0f] via-[#050506] to-[#0a0b0f]">
-      
-      {/* Game Selection */}
-      {!selectedGame && (
-        <section className="min-h-screen flex items-center justify-center px-8">
+    <ErrorBoundary>
+      <div className="min-h-screen bg-gradient-to-b from-[#0a0b0f] via-[#050506] to-[#0a0b0f]">
+        
+        {/* Game Selection */}
+        {!selectedGame && (
+          <section className="min-h-screen flex items-center justify-center px-8">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-5xl md:text-7xl font-bold bg-gradient-to-r from-[#c5a059] via-[#d4b16a] to-[#c5a059] bg-clip-text text-transparent mb-8">
               Choose Your Game
@@ -553,5 +555,6 @@ export default function HomePage() {
       )}
 
     </div>
+    </ErrorBoundary>
   );
 }

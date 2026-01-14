@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { locales } from '@/i18n/request';
 import '../globals.css';
 import { Navigation } from '@/components/Navigation';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 export const dynamic = 'force-dynamic';
 
@@ -39,8 +40,10 @@ export default async function LocaleLayout({
     <html lang={locale} dir={dir}>
       <body>
         <NextIntlClientProvider messages={messages}>
-          <Navigation />
-          <main>{children}</main>
+          <ErrorBoundary>
+            <Navigation />
+            <main>{children}</main>
+          </ErrorBoundary>
         </NextIntlClientProvider>
       </body>
     </html>
