@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { 
   Sparkles, TrendingUp, Users, Trophy, BookOpen, 
-  Zap, Target, Shield, Swords, ChevronRight, Star,
+  Zap, Target, Shield, Swords, Sword, ChevronRight, Star,
   TrendingDown, Clock, Eye, Gamepad2, Play,
   Info, Code, Heart
 } from 'lucide-react';
