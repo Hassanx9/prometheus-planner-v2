@@ -7,13 +7,35 @@ import {
   Settings, Save, Share2, Download, RotateCcw
 } from 'lucide-react';
 
-// Mock skill tree data
+// Mock skill tree data - expanded to represent a more realistic PoE 2 skill tree
 const skillTreeNodes = [
-  { id: 1, name: 'Lightning Strike', x: 100, y: 100, type: 'active', allocated: true },
-  { id: 2, name: 'Chain Lightning', x: 200, y: 150, type: 'active', allocated: false },
-  { id: 3, name: 'Lightning Mastery', x: 150, y: 200, type: 'passive', allocated: true },
-  { id: 4, name: 'Storm Call', x: 300, y: 100, type: 'active', allocated: false },
-  { id: 5, name: 'Elemental Focus', x: 250, y: 250, type: 'passive', allocated: true },
+  // Starting area
+  { id: 1, name: 'Melee Attack', x: 200, y: 200, type: 'active', allocated: true, description: 'Basic melee attack' },
+  { id: 2, name: 'Projectile Attack', x: 300, y: 200, type: 'active', allocated: false, description: 'Basic ranged attack' },
+  
+  // Strength path
+  { id: 3, name: 'Brutal Force', x: 150, y: 300, type: 'passive', allocated: true, description: '+20% Physical Damage' },
+  { id: 4, name: 'Iron Grip', x: 100, y: 350, type: 'passive', allocated: false, description: '+15% Attack Speed' },
+  { id: 5, name: 'Sunder', x: 200, y: 350, type: 'active', allocated: false, description: 'Area attack that deals physical damage' },
+  
+  // Intelligence path
+  { id: 6, name: 'Arcane Surge', x: 350, y: 300, type: 'passive', allocated: false, description: '+25% Spell Damage' },
+  { id: 7, name: 'Clarity', x: 400, y: 350, type: 'active', allocated: false, description: 'Aura that grants mana regeneration' },
+  { id: 8, name: 'Frost Bolt', x: 300, y: 350, type: 'active', allocated: false, description: 'Projectile that deals cold damage' },
+  
+  // Dexterity path
+  { id: 9, name: 'Precision', x: 250, y: 400, type: 'passive', allocated: false, description: '+20% Accuracy Rating' },
+  { id: 10, name: 'Fleet Footed', x: 200, y: 450, type: 'passive', allocated: false, description: '+10% Movement Speed' },
+  { id: 11, name: 'Explosive Arrow', x: 300, y: 450, type: 'active', allocated: false, description: 'Arrow that explodes on impact' },
+  
+  // Hybrid nodes
+  { id: 12, name: 'Elemental Mastery', x: 250, y: 250, type: 'passive', allocated: false, description: '+15% Elemental Damage' },
+  { id: 13, name: 'Combat Focus', x: 250, y: 150, type: 'passive', allocated: false, description: '+10% Critical Strike Chance' },
+  
+  // Advanced skills
+  { id: 14, name: 'Chain Lightning', x: 400, y: 400, type: 'active', allocated: false, description: 'Lightning that chains between enemies' },
+  { id: 15, name: 'Whirling Blades', x: 150, y: 450, type: 'active', allocated: false, description: 'Spinning attack that damages nearby enemies' },
+  { id: 16, name: 'Bone Chill', x: 350, y: 450, type: 'passive', allocated: false, description: 'Enemies take extra damage when chilled' },
 ];
 
 const gearSlots = [
@@ -32,9 +54,20 @@ const gearSlots = [
 
 export function BuildPlanner() {
   const t = useTranslations('builds');
-  const [selectedClass, setSelectedClass] = useState('Mercenary');
-  const [buildName, setBuildName] = useState('My Lightning Build');
+  const [selectedClass, setSelectedClass] = useState('Marauder');
+  const [buildName, setBuildName] = useState('My Marauder Build');
   const [allocatedPoints, setAllocatedPoints] = useState(25);
+  const [hoveredNode, setHoveredNode] = useState<typeof skillTreeNodes[0] | null>(null);
+
+  const handleNodeClick = (node: typeof skillTreeNodes[0]) => {
+    // Toggle allocation
+    const updatedNodes = skillTreeNodes.map(n => 
+      n.id === node.id ? { ...n, allocated: !n.allocated } : n
+    );
+    // Update allocated points count
+    const allocatedCount = updatedNodes.filter(n => n.allocated).length;
+    setAllocatedPoints(allocatedCount);
+  };
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
@@ -42,10 +75,10 @@ export function BuildPlanner() {
       <div className="xl:col-span-3">
         <div className="bg-[#1a1c2e] border border-[#3d3d43] rounded-2xl p-8 shadow-premium-xl">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-white">Skill Tree</h2>
+            <h2 className="text-2xl font-bold text-white">Path of Exile 2 Skill Tree</h2>
             <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-400">Points Allocated:</span>
-              <span className="text-lg font-bold text-[#c5a059]">{allocatedPoints}</span>
+              <span className="text-sm text-gray-400">Skill Points Used:</span>
+              <span className="text-lg font-bold text-[#c5a059]">{allocatedPoints}/100</span>
             </div>
           </div>
 
@@ -55,8 +88,8 @@ export function BuildPlanner() {
             <div className="absolute inset-0 opacity-10">
               <svg width="100%" height="100%" className="text-[#3d3d43]">
                 <defs>
-                  <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
-                    <path d="M 20 0 L 0 0 0 20" fill="none" stroke="currentColor" strokeWidth="1"/>
+                  <pattern id="grid" width="30" height="30" patternUnits="userSpaceOnUse">
+                    <path d="M 30 0 L 0 0 0 30" fill="none" stroke="currentColor" strokeWidth="1"/>
                   </pattern>
                 </defs>
                 <rect width="100%" height="100%" fill="url(#grid)" />
@@ -67,25 +100,71 @@ export function BuildPlanner() {
             {skillTreeNodes.map((node) => (
               <div
                 key={node.id}
-                className={`absolute w-12 h-12 rounded-full border-2 cursor-pointer transition-all hover:scale-110 ${
+                className={`absolute w-16 h-16 rounded-full border-3 cursor-pointer transition-all hover:scale-110 ${
                   node.allocated
                     ? 'bg-[#c5a059] border-[#c5a059] shadow-lg shadow-[#c5a059]/50'
+                    : node.type === 'active'
+                    ? 'bg-[#1a1c2e] border-[#7ecce0] hover:border-[#c5a059]'
                     : 'bg-[#1a1c2e] border-[#3d3d43] hover:border-[#c5a059]'
                 }`}
-                style={{ left: node.x, top: node.y }}
-                title={node.name}
+                style={{ left: node.x - 32, top: node.y - 32 }}
+                onClick={() => handleNodeClick(node)}
+                onMouseEnter={() => setHoveredNode(node)}
+                onMouseLeave={() => setHoveredNode(null)}
               >
-                <div className="w-full h-full flex items-center justify-center text-white text-xs font-bold">
+                <div className="w-full h-full flex items-center justify-center text-white text-lg">
                   {node.type === 'active' ? '⚡' : '⬡'}
                 </div>
               </div>
             ))}
 
-            {/* Connections */}
+            {/* Node Tooltip */}
+            {hoveredNode && (
+              <div className="absolute top-4 left-4 bg-[#1a1c2e] border border-[#3d3d43] rounded-lg p-4 shadow-premium-xl z-10 max-w-xs">
+                <h4 className="text-white font-bold mb-2">{hoveredNode.name}</h4>
+                <p className="text-gray-400 text-sm mb-2">{hoveredNode.description}</p>
+                <div className="flex items-center gap-2">
+                  <span className={`px-2 py-1 rounded text-xs ${
+                    hoveredNode.type === 'active' 
+                      ? 'bg-[#7ecce0]/20 text-[#7ecce0]' 
+                      : 'bg-[#c5a059]/20 text-[#c5a059]'
+                  }`}>
+                    {hoveredNode.type === 'active' ? 'Active Skill' : 'Passive'}
+                  </span>
+                  <span className={`px-2 py-1 rounded text-xs ${
+                    hoveredNode.allocated 
+                      ? 'bg-green-500/20 text-green-400' 
+                      : 'bg-gray-500/20 text-gray-400'
+                  }`}>
+                    {hoveredNode.allocated ? 'Allocated' : 'Available'}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Skill Tree Connections - More comprehensive */}
             <svg className="absolute inset-0 pointer-events-none">
-              <line x1="112" y1="112" x2="212" y2="162" stroke="#3d3d43" strokeWidth="2" />
-              <line x1="162" y1="212" x2="112" y2="112" stroke="#3d3d43" strokeWidth="2" />
-              <line x1="262" y1="262" x2="162" y2="212" stroke="#3d3d43" strokeWidth="2" />
+              {/* Starting connections */}
+              <line x1="200" y1="232" x2="200" y2="268" stroke="#3d3d43" strokeWidth="2" />
+              <line x1="300" y1="232" x2="300" y2="268" stroke="#3d3d43" strokeWidth="2" />
+              
+              {/* Strength path */}
+              <line x1="200" y1="300" x2="182" y2="332" stroke="#3d3d43" strokeWidth="2" />
+              <line x1="182" y1="332" x2="132" y2="382" stroke="#3d3d43" strokeWidth="2" />
+              <line x1="200" y1="300" x2="232" y2="332" stroke="#3d3d43" strokeWidth="2" />
+              
+              {/* Intelligence path */}
+              <line x1="300" y1="300" x2="332" y2="332" stroke="#3d3d43" strokeWidth="2" />
+              <line x1="332" y1="332" x2="382" y2="382" stroke="#3d3d43" strokeWidth="2" />
+              <line x1="300" y1="300" x2="268" y2="332" stroke="#3d3d43" strokeWidth="2" />
+              
+              {/* Dexterity path */}
+              <line x1="250" y1="400" x2="232" y2="432" stroke="#3d3d43" strokeWidth="2" />
+              <line x1="250" y1="400" x2="268" y2="432" stroke="#3d3d43" strokeWidth="2" />
+              
+              {/* Hybrid connections */}
+              <line x1="250" y1="200" x2="250" y2="218" stroke="#3d3d43" strokeWidth="2" />
+              <line x1="250" y1="282" x2="250" y2="318" stroke="#3d3d43" strokeWidth="2" />
             </svg>
           </div>
 
@@ -130,12 +209,13 @@ export function BuildPlanner() {
                 onChange={(e) => setSelectedClass(e.target.value)}
                 className="w-full px-3 py-2 bg-[#0f1116] border border-[#3d3d43] rounded-lg text-white focus:border-[#c5a059] focus:outline-none"
               >
-                <option>Mercenary</option>
-                <option>Sorcerer</option>
-                <option>Warrior</option>
+                <option>Marauder</option>
+                <option>Duelist</option>
                 <option>Ranger</option>
-                <option>Monk</option>
+                <option>Shadow</option>
                 <option>Witch</option>
+                <option>Templar</option>
+                <option>Scion</option>
               </select>
             </div>
           </div>

@@ -6,7 +6,7 @@ import {
   Sparkles, TrendingUp, Users, Trophy, BookOpen, 
   Zap, Target, Shield, Swords, Sword, ChevronRight, Star,
   TrendingDown, Clock, Eye, Gamepad2, Play,
-  Info, Code, Heart
+  Info, Code, Heart, Plus
 } from 'lucide-react';
 import Link from 'next/link';
 import { useLocale } from 'next-intl';
@@ -96,12 +96,13 @@ export default function HomePage() {
   // Game-specific classes
   const gameClasses = {
     'PoE 2': [
-      { name: 'Mercenary', icon: '⚔️', buildCount: 45 },
-      { name: 'Sorcerer', icon: '🔮', buildCount: 38 },
+      { name: 'Marauder', icon: '⚔️', buildCount: 45 },
+      { name: 'Duelist', icon: '🤺', buildCount: 42 },
+      { name: 'Ranger', icon: '🏹', buildCount: 38 },
+      { name: 'Shadow', icon: '🗡️', buildCount: 35 },
       { name: 'Witch', icon: '🧙‍♀️', buildCount: 32 },
-      { name: 'Warrior', icon: '🛡️', buildCount: 28 },
-      { name: 'Ranger', icon: '🏹', buildCount: 25 },
-      { name: 'Monk', icon: '🥋', buildCount: 22 },
+      { name: 'Templar', icon: '⚜️', buildCount: 28 },
+      { name: 'Scion', icon: '👑', buildCount: 25 },
     ],
     'Diablo IV': [
       { name: 'Barbarian', icon: '💪', buildCount: 28 },
