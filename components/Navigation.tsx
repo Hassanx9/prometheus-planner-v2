@@ -12,7 +12,8 @@ import {
   TrendingUp, 
   Newspaper,
   User,
-  Settings
+  Settings,
+  GitBranch
 } from 'lucide-react';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { GameSwitcher } from './GameSwitcher';
@@ -26,6 +27,7 @@ export function Navigation() {
 
   const navItems = [
     { href: `/${locale}`, label: t('home'), icon: Sword },
+    { href: `/${locale}/skill-tree`, label: t('skillTree'), icon: GitBranch },
     { href: `/${locale}/build-planner`, label: t('buildPlanner'), icon: BookOpen },
     { href: `/${locale}/builds`, label: t('builds'), icon: BookOpen },
     { href: `/${locale}/database`, label: t('database'), icon: BookOpen },

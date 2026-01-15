@@ -26,6 +26,7 @@
   },
   "nav": {
     "home": "Home",
+    "skillTree": "Skill Tree",
     "buildPlanner": "Build Planner",
     "builds": "Builds",
     "database": "Database",

@@ -6,7 +6,7 @@ import {
   Sparkles, TrendingUp, Users, Trophy, BookOpen, 
   Zap, Target, Shield, Swords, Sword, ChevronRight, Star,
   TrendingDown, Clock, Eye, Gamepad2, Play,
-  Info, Code, Heart, Plus
+  Info, Code, Heart, Plus, Gem
 } from 'lucide-react';
 import Link from 'next/link';
 import { useLocale } from 'next-intl';
