@@ -1,4 +1,5 @@
 // PoE 2 Passive Tree Data Types and Utilities
+// Proper tree structure with clean connections (not a chaotic web)
 
 export interface TreeNode {
   id: string;
@@ -30,12 +31,12 @@ export interface NodeDescriptions {
 
 // Class starting positions on the tree (normalized coordinates)
 export const CLASS_STARTS: Record<string, { x: number; y: number; name: string; color: string }> = {
-  'Witch': { x: 0.5, y: 0.15, name: 'Witch', color: '#9b59b6' },
-  'Ranger': { x: 0.8, y: 0.5, name: 'Ranger', color: '#2ecc71' },
-  'Warrior': { x: 0.2, y: 0.85, name: 'Warrior', color: '#e74c3c' },
-  'Mercenary': { x: 0.8, y: 0.7, name: 'Mercenary', color: '#c5a059' },
-  'Monk': { x: 0.35, y: 0.4, name: 'Monk', color: '#3498db' },
-  'Sorceress': { x: 0.65, y: 0.25, name: 'Sorceress', color: '#7ecce0' },
+  'Witch': { x: 0.5, y: 0.15, name: 'Witch', color: '#48c' },
+  'Ranger': { x: 0.75, y: 0.65, name: 'Ranger', color: '#4a4' },
+  'Warrior': { x: 0.25, y: 0.65, name: 'Warrior', color: '#c44' },
+  'Mercenary': { x: 0.7, y: 0.8, name: 'Mercenary', color: '#c5a059' },
+  'Monk': { x: 0.5, y: 0.9, name: 'Monk', color: '#888' },
+  'Sorceress': { x: 0.35, y: 0.2, name: 'Sorceress', color: '#7ecce0' },
 };
 
 // Calculate distance between two nodes
@@ -45,32 +46,175 @@ export function getNodeDistance(node1: TreeNode, node2: TreeNode): number {
   return Math.sqrt(dx * dx + dy * dy);
 }
 
-// Find nearby nodes for connections
-export function findNearbyNodes(
-  node: TreeNode,
-  allNodes: TreeNode[],
-  maxDistance: number = 0.02
-): TreeNode[] {
-  return allNodes.filter(
-    (other) => other.id !== node.id && getNodeDistance(node, other) < maxDistance
-  );
-}
-
-// Build connections based on proximity
+/**
+ * Build clean tree connections using:
+ * 1. k-Nearest Neighbors with local direction preference
+ * 2. Minimum Spanning Tree for backbone
+ * 3. Controlled additional connections for branching
+ * 
+ * This prevents the chaotic web and creates organized paths
+ */
 export function buildConnections(nodes: TreeNode[]): { from: string; to: string }[] {
+  if (nodes.length < 2) return [];
+
   const connections: { from: string; to: string }[] = [];
   const connectionSet = new Set<string>();
 
-  nodes.forEach((node) => {
-    const nearby = findNearbyNodes(node, nodes, 0.025);
-    nearby.forEach((nearNode) => {
-      const key1 = `${node.id}-${nearNode.id}`;
-      const key2 = `${nearNode.id}-${node.id}`;
-      if (!connectionSet.has(key1) && !connectionSet.has(key2)) {
-        connections.push({ from: node.id, to: nearNode.id });
-        connectionSet.add(key1);
+  // Helper to add connection if not exists
+  const addConnection = (fromId: string, toId: string) => {
+    const key1 = `${fromId}-${toId}`;
+    const key2 = `${toId}-${fromId}`;
+    if (!connectionSet.has(key1) && !connectionSet.has(key2)) {
+      connections.push({ from: fromId, to: toId });
+      connectionSet.add(key1);
+      connectionSet.add(key2);
+    }
+  };
+
+  // Build a spatial index for efficient neighbor lookup
+  const nodeMap = new Map(nodes.map(n => [n.id, n]));
+
+  // Step 1: Build Minimum Spanning Tree using Prim's algorithm
+  // This creates the backbone of clean paths
+  const mstEdges: { from: string; to: string; dist: number }[] = [];
+  const inMST = new Set<string>();
+  const candidates: { from: string; to: string; dist: number }[] = [];
+
+  // Start from the center-most node (usually a class start or central notable)
+  let startNode = nodes.reduce((closest, node) => {
+    const distToCenter = Math.sqrt(Math.pow(node.x - 0.5, 2) + Math.pow(node.y - 0.5, 2));
+    const closestDistToCenter = Math.sqrt(Math.pow(closest.x - 0.5, 2) + Math.pow(closest.y - 0.5, 2));
+    return distToCenter < closestDistToCenter ? node : closest;
+  });
+
+  // For class starts, prefer those
+  const classStarts = nodes.filter(n => n.kind === 'start');
+  if (classStarts.length > 0) {
+    startNode = classStarts[0];
+  }
+
+  inMST.add(startNode.id);
+
+  // Add initial edges from start node
+  nodes.forEach(node => {
+    if (node.id !== startNode.id) {
+      const dist = getNodeDistance(startNode, node);
+      // Only consider nearby nodes (not across the whole tree)
+      if (dist < 0.08) {
+        candidates.push({ from: startNode.id, to: node.id, dist });
+      }
+    }
+  });
+
+  // Build MST with limited edge lengths
+  while (candidates.length > 0 && inMST.size < nodes.length) {
+    // Sort by distance and pick the shortest
+    candidates.sort((a, b) => a.dist - b.dist);
+    
+    // Find the shortest edge to a node not in MST
+    let bestIdx = -1;
+    for (let i = 0; i < candidates.length; i++) {
+      if (!inMST.has(candidates[i].to)) {
+        bestIdx = i;
+        break;
+      }
+    }
+
+    if (bestIdx === -1) break;
+
+    const best = candidates.splice(bestIdx, 1)[0];
+    if (inMST.has(best.to)) continue;
+
+    mstEdges.push(best);
+    inMST.add(best.to);
+
+    // Add new edges from the newly added node
+    const newNode = nodeMap.get(best.to)!;
+    nodes.forEach(node => {
+      if (!inMST.has(node.id)) {
+        const dist = getNodeDistance(newNode, node);
+        // Limit connection distance based on node type
+        const maxDist = node.kind === 'small' ? 0.025 : node.kind === 'notable' ? 0.04 : 0.06;
+        if (dist < maxDist) {
+          candidates.push({ from: best.to, to: node.id, dist });
+        }
       }
     });
+
+    // Clean up candidates that are now in MST
+    for (let i = candidates.length - 1; i >= 0; i--) {
+      if (inMST.has(candidates[i].to)) {
+        candidates.splice(i, 1);
+      }
+    }
+  }
+
+  // Add MST edges to connections
+  mstEdges.forEach(edge => addConnection(edge.from, edge.to));
+
+  // Step 2: For nodes with no connections yet (isolated), connect to nearest
+  const connectedNodes = new Set<string>();
+  connections.forEach(conn => {
+    connectedNodes.add(conn.from);
+    connectedNodes.add(conn.to);
+  });
+
+  nodes.forEach(node => {
+    if (!connectedNodes.has(node.id)) {
+      // Find nearest connected node
+      let nearest: TreeNode | null = null;
+      let nearestDist = Infinity;
+      
+      nodes.forEach(other => {
+        if (connectedNodes.has(other.id)) {
+          const dist = getNodeDistance(node, other);
+          if (dist < nearestDist) {
+            nearest = other;
+            nearestDist = dist;
+          }
+        }
+      });
+
+      if (nearest && nearestDist < 0.1) {
+        addConnection(node.id, nearest.id);
+        connectedNodes.add(node.id);
+      }
+    }
+  });
+
+  // Step 3: Add limited additional connections for important nodes (keystones, notables)
+  // Each notable/keystone can have up to 3-4 connections total
+  const connectionCount = new Map<string, number>();
+  connections.forEach(conn => {
+    connectionCount.set(conn.from, (connectionCount.get(conn.from) || 0) + 1);
+    connectionCount.set(conn.to, (connectionCount.get(conn.to) || 0) + 1);
+  });
+
+  nodes.forEach(node => {
+    if (node.kind !== 'small') {
+      const currentCount = connectionCount.get(node.id) || 0;
+      const maxConnections = node.kind === 'keystone' ? 4 : node.kind === 'notable' ? 3 : 2;
+      
+      if (currentCount < maxConnections) {
+        // Find nearest unconnected neighbors
+        const unconnectedNeighbors = nodes
+          .filter(other => {
+            if (other.id === node.id) return false;
+            const key1 = `${node.id}-${other.id}`;
+            const key2 = `${other.id}-${node.id}`;
+            return !connectionSet.has(key1) && !connectionSet.has(key2);
+          })
+          .map(other => ({ node: other, dist: getNodeDistance(node, other) }))
+          .filter(item => item.dist < 0.035)
+          .sort((a, b) => a.dist - b.dist);
+
+        // Add up to (maxConnections - currentCount) new connections
+        const toAdd = Math.min(maxConnections - currentCount, unconnectedNeighbors.length);
+        for (let i = 0; i < toAdd; i++) {
+          addConnection(node.id, unconnectedNeighbors[i].node.id);
+        }
+      }
+    }
   });
 
   return connections;
@@ -83,7 +227,6 @@ export function findPath(
   nodes: TreeNode[],
   connections: { from: string; to: string }[]
 ): string[] {
-  const nodeMap = new Map(nodes.map((n) => [n.id, n]));
   const adjacencyList = new Map<string, string[]>();
 
   // Build adjacency list
