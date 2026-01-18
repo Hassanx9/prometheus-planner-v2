@@ -85,6 +85,14 @@ export default function HomePage() {
     { title: 'Best Support Gems for Crossbow', views: '54K', time: '1 day ago', type: 'Guide' },
   ];
 
+  // Trending builds for the homepage
+  const trendingBuilds = [
+    { title: 'Lightning Invoker', class: 'Sorcerer', rating: 4.9, author: 'Mathil', tags: ['Early Game', 'SSF Viable'] },
+    { title: 'Titan Earthquake', class: 'Warrior', rating: 4.8, author: 'Zizaran', tags: ['League Start', 'HC Viable'] },
+    { title: 'Poison Concoction', class: 'Ranger', rating: 4.7, author: 'Grimro', tags: ['Budget', 'Fast Clear'] },
+    { title: 'Blood Mage', class: 'Witch', rating: 4.6, author: 'Waggle', tags: ['Damage', 'Magic Find'] },
+  ];
+
   const metaClasses = [
     { name: 'Mercenary', popularity: 28, trend: 'up', color: '#c5a059' },
     { name: 'Sorcerer', popularity: 24, trend: 'up', color: '#7ecce0' },
