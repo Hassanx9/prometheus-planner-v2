@@ -543,7 +543,7 @@ export function CanvasSkillTree({
           <button
             onClick={handleExportBuild}
             className="p-2 bg-[#0f1116] border border-[#3d3d43] hover:border-[#c5a059] rounded-lg transition-all"
-            data-testid="export-build-btn"
+            data-testid="export-build-canvas-btn"
           >
             <Share2 size={18} className="text-gray-300" />
           </button>
