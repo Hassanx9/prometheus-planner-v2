@@ -2,77 +2,73 @@
 
 ## Project Overview
 **Name:** Prometheus - ARPG Build Planner  
-**Version:** 2.1.0  
+**Version:** 2.2.0  
 **Last Updated:** January 18, 2026  
 **Tech Stack:** Next.js 15, TypeScript, Tailwind CSS, next-intl (i18n)
 
 ## Original Problem Statement
-User requested integration of the full Path of Exile 2 passive skill tree (similar to poeplanner.com/poe2) with:
-- Interactive Canvas-based tree rendering for 2500+ nodes
+User requested integration of the full Path of Exile 2 passive skill tree with:
 - Professional game-accurate visual design matching PoE 2 aesthetic
+- Clean, organized connection paths (not chaotic overlapping web)
+- Interactive Canvas-based tree rendering for 2500+ nodes
 - Smart pathfinding between nodes
 - Stat calculation sidebar with collapsible sections
-- Level progression slider
 - Build sharing/export codes
-
-## User Personas
-1. **Hardcore PoE 2 Player** - Needs detailed tree planning with accurate stat calculations
-2. **New Player** - Needs guided experience with level progression presets
-3. **Build Creator/Streamer** - Needs sharing/export functionality
 
 ## Core Requirements (Static)
 - [x] Full PoE 2 passive tree visualization (2,546 nodes)
 - [x] Canvas-based rendering for performance
-- [x] Game-accurate visual design (small nodes, proper shapes, glow effects)
+- [x] Game-accurate visual design (proper shapes, glow effects)
+- [x] **Clean chain-like connections** (not chaotic web)
 - [x] Zoom/pan navigation (30%-400%)
 - [x] Node allocation/deallocation on click
 - [x] Smart pathfinding mode
 - [x] Node search functionality
-- [x] Level input with manual entry
 - [x] Real-time stat calculation
 - [x] Build export/share codes
-- [x] Class selector (Witch, Ranger, Warrior, Mercenary, Monk, Sorceress)
-- [x] Collapsible stats sidebar (Attributes, Defensive, Offensive, Damage)
+- [x] Class selector
+- [x] Collapsible stats sidebar
 - [x] Multi-language support (EN/AR)
 
 ## What's Been Implemented
 
-### January 18, 2026 - Initial MVP
-- Downloaded PoE 2 tree data (2,546 nodes)
-- Basic Canvas skill tree implementation
-- Level progression slider
+### January 18, 2026 - Connection Algorithm Fix (Current)
+**Major Fix: Clean Connection Paths**
 
-### January 18, 2026 - Visual Redesign (Current)
-- **Completely redesigned Canvas renderer** to match PoE 2 game aesthetic:
-  - Smaller, refined node sizes (8px keystones, 5px notables, 2.5px smalls)
-  - Diamond shapes for keystones
-  - Hexagonal shapes for notables
-  - Circular shapes for small nodes
-  - Radial glow effects around nodes
-  - Cosmic dark background with subtle stars
-  - Thin golden connection lines
-  - Professional tooltips with node names and stats
+Previous issue: Connections formed a chaotic overlapping web that was confusing and non-functional.
 
-- **Updated sidebar** with game-like collapsible sections:
-  - Character info panel
-  - Collapse All / Expand All buttons
-  - Attributes (Str/Dex/Int)
-  - Defensive stats (Life, Mana, ES, Armour, Evasion)
-  - Offensive stats (Crit, Attack Speed, Cast Speed)
-  - Damage types (Physical, Fire, Cold, Lightning, Chaos)
+Solution: Implemented a phased k-Nearest Neighbors algorithm:
+1. **Phase 1**: Connect small nodes to nearest neighbor (creates chains)
+2. **Phase 2**: Connect isolated small nodes
+3. **Phase 3**: Add second connection to small nodes (complete chains)
+4. **Phase 4**: Connect notables to nearby notables (backbone)
+5. **Phase 5**: Connect keystones to nearest notables
+6. **Phase 6**: Connect class starts to nearby nodes
 
-- **Compact header** with inline controls:
-  - Class selector dropdown
-  - Level input field
-  - Points counter
-  - Build name input
-  - Save/Share/Export buttons
+Connection limits by node type:
+- Small nodes: max 2 connections
+- Notable nodes: max 4 connections
+- Keystone nodes: max 3 connections
+- Class starts: max 8 connections
+
+Distance thresholds:
+- Small to small: 0.02
+- Small to notable: 0.03
+- Notable to notable: 0.06
+- Keystone connections: 0.05
+
+### Visual Design
+- Diamond shapes for keystones (golden glow)
+- Hexagonal shapes for notables (cyan glow)
+- Circular shapes for small nodes
+- Cosmic dark background with subtle stars
+- Thin clean connection lines (visible but not overwhelming)
+- Golden highlighting for allocated paths
 
 ## Testing Results
-- **Frontend:** 100% pass rate
-- All 20 test cases passed
-- No JavaScript errors
-- Professional design verified
+- **Frontend:** 100% pass rate (20/20 tests)
+- Connections verified as clean chain-like paths
+- All interactive features working
 
 ## Prioritized Backlog
 
@@ -87,26 +83,11 @@ User requested integration of the full Path of Exile 2 passive skill tree (simil
 
 ### P2 (Medium)
 - [ ] Ascendancy trees integration
-- [ ] Class-specific starting points
+- [ ] Class-specific starting points with connecting paths
 - [ ] Build comparison tool
-- [ ] AI build recommendations
-
-### P3 (Low)
-- [ ] Real-time economy integration (poe.ninja)
-- [ ] Video embed for build guides
-- [ ] Mobile optimization
 
 ## Next Tasks
 1. Add localStorage persistence for allocated nodes
-2. Implement build import from share code
-3. Add class-specific starting node positions
+2. Implement build import from share codes
+3. Add class-specific starting node positions with proper paths
 4. Connect to backend for build storage
-5. Implement user authentication
-
-## Architecture Notes
-- Tree data loaded from static JSON files in `/public/tree-data/`
-- Canvas API with device pixel ratio scaling for crisp rendering
-- Different node shapes: diamonds (keystones), hexagons (notables), circles (smalls)
-- Radial gradients for glow effects
-- BFS pathfinding algorithm
-- Build codes use base64-encoded JSON of node IDs
