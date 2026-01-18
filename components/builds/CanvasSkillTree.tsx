@@ -9,9 +9,9 @@ import {
   Search,
   Download,
   Share2,
-  Layers,
   Target,
   X,
+  Filter,
 } from 'lucide-react';
 import {
   TreeNode,
@@ -37,21 +37,57 @@ interface CanvasState {
   offsetY: number;
 }
 
-// Node rendering sizes based on type
+// Professional PoE 2 style node sizes (much smaller, refined)
 const NODE_SIZES = {
-  keystone: 18,
-  notable: 12,
-  small: 6,
-  start: 22,
+  keystone: 8,
+  notable: 5,
+  small: 2.5,
+  start: 12,
 };
 
-// Node colors
-const NODE_COLORS = {
-  keystone: { normal: '#1a1c2e', allocated: '#c5a059', hover: '#d4b16a', border: '#c5a059' },
-  notable: { normal: '#1a1c2e', allocated: '#7ecce0', hover: '#8dd6ea', border: '#7ecce0' },
-  small: { normal: '#1a1c2e', allocated: '#4a5568', hover: '#718096', border: '#3d3d43' },
-  start: { normal: '#c5a059', allocated: '#c5a059', hover: '#d4b16a', border: '#fff' },
+// PoE 2 style attribute area colors with glow
+const ATTRIBUTE_COLORS = {
+  strength: { primary: '#c44', secondary: '#f66', glow: 'rgba(255, 100, 100, 0.6)' },
+  dexterity: { primary: '#4a4', secondary: '#6c6', glow: 'rgba(100, 255, 100, 0.6)' },
+  intelligence: { primary: '#48c', secondary: '#6af', glow: 'rgba(100, 150, 255, 0.6)' },
+  neutral: { primary: '#888', secondary: '#aaa', glow: 'rgba(200, 200, 200, 0.4)' },
 };
+
+// Node type specific styling
+const NODE_STYLES = {
+  keystone: {
+    normal: { fill: '#1a1a2e', stroke: '#c5a059', strokeWidth: 1.5, glow: 'rgba(197, 160, 89, 0.8)' },
+    allocated: { fill: '#c5a059', stroke: '#fff', strokeWidth: 2, glow: 'rgba(255, 215, 100, 1)' },
+    hover: { fill: '#2a2a3e', stroke: '#d4b16a', strokeWidth: 2, glow: 'rgba(212, 177, 106, 0.9)' },
+  },
+  notable: {
+    normal: { fill: '#151520', stroke: '#7ecce0', strokeWidth: 1, glow: 'rgba(126, 204, 224, 0.5)' },
+    allocated: { fill: '#7ecce0', stroke: '#fff', strokeWidth: 1.5, glow: 'rgba(126, 204, 224, 1)' },
+    hover: { fill: '#1a1a2a', stroke: '#9de', strokeWidth: 1.5, glow: 'rgba(150, 220, 240, 0.7)' },
+  },
+  small: {
+    normal: { fill: '#0d0d12', stroke: '#3a3a4a', strokeWidth: 0.5, glow: 'rgba(100, 100, 120, 0.3)' },
+    allocated: { fill: '#6a6a7a', stroke: '#aaa', strokeWidth: 1, glow: 'rgba(170, 170, 190, 0.6)' },
+    hover: { fill: '#1a1a22', stroke: '#5a5a6a', strokeWidth: 1, glow: 'rgba(130, 130, 150, 0.4)' },
+  },
+  start: {
+    normal: { fill: '#c5a059', stroke: '#fff', strokeWidth: 2, glow: 'rgba(197, 160, 89, 1)' },
+    allocated: { fill: '#c5a059', stroke: '#fff', strokeWidth: 2, glow: 'rgba(255, 215, 100, 1)' },
+    hover: { fill: '#d4b16a', stroke: '#fff', strokeWidth: 2.5, glow: 'rgba(212, 177, 106, 1)' },
+  },
+};
+
+// Determine attribute area based on node position
+function getAttributeArea(x: number, y: number): 'strength' | 'dexterity' | 'intelligence' | 'neutral' {
+  // Top area = Intelligence (blue)
+  if (y < 0.35) return 'intelligence';
+  // Bottom left = Strength (red)
+  if (y > 0.6 && x < 0.4) return 'strength';
+  // Bottom right = Dexterity (green)
+  if (y > 0.6 && x > 0.6) return 'dexterity';
+  // Middle/mixed areas
+  return 'neutral';
+}
 
 export function CanvasSkillTree({
   onStatsChange,
@@ -68,9 +104,9 @@ export function CanvasSkillTree({
   const [connections, setConnections] = useState<{ from: string; to: string }[]>([]);
   const [loading, setLoading] = useState(true);
   
-  // Interaction state
+  // Interaction state - Start zoomed out to see full tree
   const [canvasState, setCanvasState] = useState<CanvasState>({
-    scale: 1,
+    scale: 0.8,
     offsetX: 0,
     offsetY: 0,
   });
@@ -85,7 +121,7 @@ export function CanvasSkillTree({
   const [pathStart, setPathStart] = useState<string | null>(null);
   
   // Canvas dimensions
-  const [dimensions, setDimensions] = useState({ width: 1200, height: 800 });
+  const [dimensions, setDimensions] = useState({ width: 1400, height: 900 });
 
   // Load tree data
   useEffect(() => {
@@ -161,13 +197,15 @@ export function CanvasSkillTree({
   // Convert normalized coordinates to canvas coordinates
   const toCanvasCoords = useCallback(
     (x: number, y: number) => {
-      const padding = 100;
+      const padding = 50;
       const treeWidth = dimensions.width - padding * 2;
       const treeHeight = dimensions.height - padding * 2;
+      const centerX = dimensions.width / 2;
+      const centerY = dimensions.height / 2;
 
       return {
-        x: padding + x * treeWidth * canvasState.scale + canvasState.offsetX,
-        y: padding + y * treeHeight * canvasState.scale + canvasState.offsetY,
+        x: centerX + (x - 0.5) * treeWidth * canvasState.scale + canvasState.offsetX,
+        y: centerY + (y - 0.5) * treeHeight * canvasState.scale + canvasState.offsetY,
       };
     },
     [dimensions, canvasState]
@@ -176,13 +214,15 @@ export function CanvasSkillTree({
   // Convert canvas coordinates to normalized
   const fromCanvasCoords = useCallback(
     (canvasX: number, canvasY: number) => {
-      const padding = 100;
+      const padding = 50;
       const treeWidth = dimensions.width - padding * 2;
       const treeHeight = dimensions.height - padding * 2;
+      const centerX = dimensions.width / 2;
+      const centerY = dimensions.height / 2;
 
       return {
-        x: (canvasX - padding - canvasState.offsetX) / (treeWidth * canvasState.scale),
-        y: (canvasY - padding - canvasState.offsetY) / (treeHeight * canvasState.scale),
+        x: (canvasX - centerX - canvasState.offsetX) / (treeWidth * canvasState.scale) + 0.5,
+        y: (canvasY - centerY - canvasState.offsetY) / (treeHeight * canvasState.scale) + 0.5,
       };
     },
     [dimensions, canvasState]
@@ -193,13 +233,16 @@ export function CanvasSkillTree({
     (canvasX: number, canvasY: number): TreeNode | null => {
       const normalized = fromCanvasCoords(canvasX, canvasY);
 
-      for (const node of nodes) {
-        const size = NODE_SIZES[node.kind] / (dimensions.width * canvasState.scale);
+      // Check nodes in reverse order (larger nodes on top)
+      const sortedNodes = [...nodes].sort((a, b) => NODE_SIZES[b.kind] - NODE_SIZES[a.kind]);
+
+      for (const node of sortedNodes) {
+        const hitRadius = (NODE_SIZES[node.kind] * 3) / (dimensions.width * canvasState.scale);
         const dx = node.x - normalized.x;
         const dy = node.y - normalized.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
 
-        if (distance < size * 2) {
+        if (distance < hitRadius) {
           return node;
         }
       }
@@ -209,7 +252,7 @@ export function CanvasSkillTree({
     [nodes, fromCanvasCoords, dimensions, canvasState]
   );
 
-  // Draw the tree
+  // Draw the tree with professional PoE 2 styling
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas || loading) return;
@@ -217,29 +260,34 @@ export function CanvasSkillTree({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Clear canvas
-    ctx.fillStyle = '#050506';
+    // Set canvas resolution for crisp rendering
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = dimensions.width * dpr;
+    canvas.height = dimensions.height * dpr;
+    ctx.scale(dpr, dpr);
+
+    // Dark cosmic background
+    const bgGradient = ctx.createRadialGradient(
+      dimensions.width / 2, dimensions.height / 2, 0,
+      dimensions.width / 2, dimensions.height / 2, dimensions.width * 0.7
+    );
+    bgGradient.addColorStop(0, '#0a0a12');
+    bgGradient.addColorStop(0.5, '#060608');
+    bgGradient.addColorStop(1, '#030304');
+    ctx.fillStyle = bgGradient;
     ctx.fillRect(0, 0, dimensions.width, dimensions.height);
 
-    // Draw grid pattern
-    ctx.strokeStyle = '#1a1c2e';
-    ctx.lineWidth = 1;
-    const gridSize = 50 * canvasState.scale;
-    for (let x = canvasState.offsetX % gridSize; x < dimensions.width; x += gridSize) {
+    // Subtle star-like dots in background
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
+    for (let i = 0; i < 100; i++) {
+      const x = Math.random() * dimensions.width;
+      const y = Math.random() * dimensions.height;
       ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, dimensions.height);
-      ctx.stroke();
-    }
-    for (let y = canvasState.offsetY % gridSize; y < dimensions.height; y += gridSize) {
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(dimensions.width, y);
-      ctx.stroke();
+      ctx.arc(x, y, Math.random() * 0.8, 0, Math.PI * 2);
+      ctx.fill();
     }
 
-    // Draw connections
-    ctx.lineWidth = 2 * canvasState.scale;
+    // Draw connections first (thin golden/amber lines)
     connections.forEach((conn) => {
       const fromNode = nodeMap.get(conn.from);
       const toNode = nodeMap.get(conn.to);
@@ -250,26 +298,44 @@ export function CanvasSkillTree({
 
       // Check if both nodes are allocated for highlighting
       const bothAllocated = allocatedNodes.has(conn.from) && allocatedNodes.has(conn.to);
+      const oneAllocated = allocatedNodes.has(conn.from) || allocatedNodes.has(conn.to);
 
-      ctx.strokeStyle = bothAllocated ? '#c5a059' : '#3d3d43';
       ctx.beginPath();
       ctx.moveTo(from.x, from.y);
       ctx.lineTo(to.x, to.y);
+
+      if (bothAllocated) {
+        ctx.strokeStyle = '#c5a059';
+        ctx.lineWidth = 1.5 * canvasState.scale;
+        ctx.shadowColor = 'rgba(197, 160, 89, 0.5)';
+        ctx.shadowBlur = 4;
+      } else if (oneAllocated) {
+        ctx.strokeStyle = '#6a5a3a';
+        ctx.lineWidth = 1 * canvasState.scale;
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+      } else {
+        ctx.strokeStyle = '#2a2a32';
+        ctx.lineWidth = 0.5 * canvasState.scale;
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+      }
       ctx.stroke();
+      ctx.shadowBlur = 0;
     });
 
-    // Draw nodes (sorted by size for proper layering)
+    // Draw nodes (sorted by size for proper layering - small first, then notable, then keystone)
     const sortedNodes = [...nodes].sort(
       (a, b) => NODE_SIZES[a.kind] - NODE_SIZES[b.kind]
     );
 
     sortedNodes.forEach((node) => {
       const pos = toCanvasCoords(node.x, node.y);
-      const size = NODE_SIZES[node.kind] * canvasState.scale;
-      const colors = NODE_COLORS[node.kind];
+      const baseSize = NODE_SIZES[node.kind];
+      const size = baseSize * canvasState.scale;
+      
       const isAllocated = allocatedNodes.has(node.id);
       const isHovered = hoveredNode?.id === node.id;
-      const isSelected = selectedNode?.id === node.id;
       const isSearchMatch =
         searchQuery &&
         (descriptions[node.id]?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -277,35 +343,68 @@ export function CanvasSkillTree({
             s.toLowerCase().includes(searchQuery.toLowerCase())
           ));
 
-      // Node fill
-      ctx.beginPath();
-      ctx.arc(pos.x, pos.y, size, 0, Math.PI * 2);
+      // Get style based on state
+      const styles = NODE_STYLES[node.kind];
+      let style = styles.normal;
+      if (isAllocated) style = styles.allocated;
+      else if (isHovered) style = styles.hover;
 
-      if (isSearchMatch) {
-        ctx.fillStyle = '#e74c3c';
-      } else if (isAllocated) {
-        ctx.fillStyle = colors.allocated;
-      } else if (isHovered) {
-        ctx.fillStyle = colors.hover;
-      } else {
-        ctx.fillStyle = colors.normal;
+      // Get attribute area color for glow
+      const attrArea = getAttributeArea(node.x, node.y);
+      const attrColor = ATTRIBUTE_COLORS[attrArea];
+
+      // Draw glow effect
+      if (isAllocated || isHovered || node.kind === 'keystone' || node.kind === 'notable') {
+        const gradient = ctx.createRadialGradient(pos.x, pos.y, 0, pos.x, pos.y, size * 3);
+        gradient.addColorStop(0, isSearchMatch ? 'rgba(255, 80, 80, 0.8)' : style.glow);
+        gradient.addColorStop(0.5, isSearchMatch ? 'rgba(255, 80, 80, 0.3)' : style.glow.replace(/[\d.]+\)$/, '0.2)'));
+        gradient.addColorStop(1, 'transparent');
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, size * 3, 0, Math.PI * 2);
+        ctx.fill();
       }
+
+      // Draw node shape
+      ctx.beginPath();
+      
+      if (node.kind === 'keystone') {
+        // Diamond shape for keystones
+        ctx.moveTo(pos.x, pos.y - size * 1.3);
+        ctx.lineTo(pos.x + size * 1.3, pos.y);
+        ctx.lineTo(pos.x, pos.y + size * 1.3);
+        ctx.lineTo(pos.x - size * 1.3, pos.y);
+        ctx.closePath();
+      } else if (node.kind === 'notable') {
+        // Hexagon shape for notables
+        for (let i = 0; i < 6; i++) {
+          const angle = (i * Math.PI) / 3 - Math.PI / 6;
+          const x = pos.x + size * 1.2 * Math.cos(angle);
+          const y = pos.y + size * 1.2 * Math.sin(angle);
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+      } else {
+        // Circle for small nodes and starts
+        ctx.arc(pos.x, pos.y, size, 0, Math.PI * 2);
+      }
+
+      // Fill
+      ctx.fillStyle = isSearchMatch ? '#c44' : style.fill;
       ctx.fill();
 
-      // Node border
-      ctx.strokeStyle = isSelected ? '#fff' : colors.border;
-      ctx.lineWidth = isSelected ? 3 * canvasState.scale : 2 * canvasState.scale;
+      // Stroke
+      ctx.strokeStyle = style.stroke;
+      ctx.lineWidth = style.strokeWidth * canvasState.scale;
       ctx.stroke();
 
-      // Keystone/Notable label
-      if ((node.kind === 'keystone' || node.kind === 'notable') && canvasState.scale > 0.8) {
-        const desc = descriptions[node.id];
-        if (desc?.name) {
-          ctx.font = `${10 * canvasState.scale}px sans-serif`;
-          ctx.fillStyle = isAllocated ? '#fff' : '#9ca3af';
-          ctx.textAlign = 'center';
-          ctx.fillText(desc.name, pos.x, pos.y - size - 5);
-        }
+      // Inner highlight for allocated nodes
+      if (isAllocated && node.kind !== 'small') {
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, size * 0.4, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+        ctx.fill();
       }
     });
 
@@ -315,10 +414,10 @@ export function CanvasSkillTree({
       if (startNode) {
         const pos = toCanvasCoords(startNode.x, startNode.y);
         ctx.strokeStyle = '#c5a059';
-        ctx.lineWidth = 3;
-        ctx.setLineDash([5, 5]);
+        ctx.lineWidth = 2;
+        ctx.setLineDash([4, 4]);
         ctx.beginPath();
-        ctx.arc(pos.x, pos.y, NODE_SIZES[startNode.kind] * canvasState.scale + 8, 0, Math.PI * 2);
+        ctx.arc(pos.x, pos.y, NODE_SIZES[startNode.kind] * canvasState.scale + 10, 0, Math.PI * 2);
         ctx.stroke();
         ctx.setLineDash([]);
       }
@@ -331,7 +430,6 @@ export function CanvasSkillTree({
     nodeMap,
     allocatedNodes,
     hoveredNode,
-    selectedNode,
     searchQuery,
     descriptions,
     nodes,
@@ -427,22 +525,22 @@ export function CanvasSkillTree({
 
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault();
-    const delta = e.deltaY > 0 ? -0.1 : 0.1;
+    const delta = e.deltaY > 0 ? -0.08 : 0.08;
     setCanvasState((prev) => ({
       ...prev,
-      scale: Math.max(0.3, Math.min(3, prev.scale + delta)),
+      scale: Math.max(0.3, Math.min(4, prev.scale + delta)),
     }));
   };
 
   const handleZoom = (delta: number) => {
     setCanvasState((prev) => ({
       ...prev,
-      scale: Math.max(0.3, Math.min(3, prev.scale + delta)),
+      scale: Math.max(0.3, Math.min(4, prev.scale + delta)),
     }));
   };
 
   const handleReset = () => {
-    setCanvasState({ scale: 1, offsetX: 0, offsetY: 0 });
+    setCanvasState({ scale: 0.8, offsetX: 0, offsetY: 0 });
   };
 
   const handleClearTree = () => {
@@ -458,107 +556,107 @@ export function CanvasSkillTree({
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-[800px] bg-[#0f1116] rounded-xl border border-[#3d3d43]">
+      <div className="flex items-center justify-center h-[800px] bg-[#050508] rounded-lg border border-[#1a1a22]">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-[#c5a059] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-400">Loading Passive Tree ({nodes.length.toLocaleString()} nodes)...</p>
+          <div className="w-12 h-12 border-2 border-[#c5a059] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-500 text-sm">Loading Passive Tree...</p>
+          <p className="text-gray-600 text-xs mt-1">{nodes.length.toLocaleString()} nodes</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="relative bg-[#0f1116] rounded-xl border border-[#3d3d43] overflow-hidden" data-testid="canvas-skill-tree">
-      {/* Controls Bar */}
-      <div className="flex items-center justify-between p-4 border-b border-[#3d3d43] bg-[#1a1c2e]">
-        <div className="flex items-center gap-2">
+    <div className="relative bg-[#050508] rounded-lg border border-[#1a1a22] overflow-hidden" data-testid="canvas-skill-tree">
+      {/* Minimal Controls Bar */}
+      <div className="absolute top-4 left-4 z-10 flex items-center gap-2">
+        <div className="flex items-center gap-1 bg-black/60 backdrop-blur-sm rounded-lg p-1 border border-[#2a2a32]">
           <button
-            onClick={() => handleZoom(0.2)}
-            className="p-2 bg-[#0f1116] border border-[#3d3d43] hover:border-[#c5a059] rounded-lg transition-all"
+            onClick={() => handleZoom(0.15)}
+            className="p-1.5 hover:bg-white/10 rounded transition-all"
             data-testid="zoom-in-btn"
           >
-            <ZoomIn size={18} className="text-gray-300" />
+            <ZoomIn size={14} className="text-gray-400" />
           </button>
           <button
-            onClick={() => handleZoom(-0.2)}
-            className="p-2 bg-[#0f1116] border border-[#3d3d43] hover:border-[#c5a059] rounded-lg transition-all"
+            onClick={() => handleZoom(-0.15)}
+            className="p-1.5 hover:bg-white/10 rounded transition-all"
             data-testid="zoom-out-btn"
           >
-            <ZoomOut size={18} className="text-gray-300" />
+            <ZoomOut size={14} className="text-gray-400" />
           </button>
           <button
             onClick={handleReset}
-            className="p-2 bg-[#0f1116] border border-[#3d3d43] hover:border-[#c5a059] rounded-lg transition-all"
+            className="p-1.5 hover:bg-white/10 rounded transition-all"
             data-testid="reset-view-btn"
           >
-            <RotateCcw size={18} className="text-gray-300" />
+            <RotateCcw size={14} className="text-gray-400" />
           </button>
-          <div className="w-px h-6 bg-[#3d3d43] mx-2" />
-          <span className="text-sm text-gray-400 font-mono">
+          <div className="w-px h-4 bg-[#2a2a32] mx-1" />
+          <span className="text-xs text-gray-500 px-2 font-mono">
             {Math.round(canvasState.scale * 100)}%
           </span>
         </div>
+      </div>
 
-        <div className="flex items-center gap-2">
-          {/* Search Toggle */}
-          <button
-            onClick={() => setShowSearch(!showSearch)}
-            className={`p-2 border rounded-lg transition-all ${
-              showSearch
-                ? 'bg-[#c5a059] border-[#c5a059] text-black'
-                : 'bg-[#0f1116] border-[#3d3d43] hover:border-[#c5a059] text-gray-300'
-            }`}
-            data-testid="search-toggle-btn"
-          >
-            <Search size={18} />
-          </button>
+      {/* Right side controls */}
+      <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
+        <button
+          onClick={() => setShowSearch(!showSearch)}
+          className={`p-1.5 rounded transition-all border ${
+            showSearch
+              ? 'bg-[#c5a059] border-[#c5a059] text-black'
+              : 'bg-black/60 border-[#2a2a32] hover:bg-white/10 text-gray-400'
+          }`}
+          data-testid="search-toggle-btn"
+        >
+          <Search size={14} />
+        </button>
 
-          {/* Path Mode Toggle */}
-          <button
-            onClick={() => {
-              setPathMode(!pathMode);
-              setPathStart(null);
-            }}
-            className={`p-2 border rounded-lg transition-all ${
-              pathMode
-                ? 'bg-[#c5a059] border-[#c5a059] text-black'
-                : 'bg-[#0f1116] border-[#3d3d43] hover:border-[#c5a059] text-gray-300'
-            }`}
-            title="Smart Path Mode"
-            data-testid="path-mode-btn"
-          >
-            <Target size={18} />
-          </button>
+        <button
+          onClick={() => {
+            setPathMode(!pathMode);
+            setPathStart(null);
+          }}
+          className={`p-1.5 rounded transition-all border ${
+            pathMode
+              ? 'bg-[#c5a059] border-[#c5a059] text-black'
+              : 'bg-black/60 border-[#2a2a32] hover:bg-white/10 text-gray-400'
+          }`}
+          title="Smart Path Mode"
+          data-testid="path-mode-btn"
+        >
+          <Target size={14} />
+        </button>
 
-          <div className="w-px h-6 bg-[#3d3d43] mx-2" />
+        <div className="w-px h-5 bg-[#2a2a32]" />
 
-          <button
-            onClick={handleClearTree}
-            className="p-2 bg-[#0f1116] border border-[#3d3d43] hover:border-red-500 text-gray-300 hover:text-red-500 rounded-lg transition-all"
-            data-testid="clear-tree-btn"
-          >
-            <X size={18} />
-          </button>
+        <button
+          onClick={handleClearTree}
+          className="p-1.5 bg-black/60 border border-[#2a2a32] hover:bg-red-500/20 hover:border-red-500/50 text-gray-400 hover:text-red-400 rounded transition-all"
+          data-testid="clear-tree-btn"
+        >
+          <X size={14} />
+        </button>
 
-          <button
-            onClick={handleExportBuild}
-            className="p-2 bg-[#0f1116] border border-[#3d3d43] hover:border-[#c5a059] rounded-lg transition-all"
-            data-testid="export-build-canvas-btn"
-          >
-            <Share2 size={18} className="text-gray-300" />
-          </button>
-        </div>
+        <button
+          onClick={handleExportBuild}
+          className="p-1.5 bg-black/60 border border-[#2a2a32] hover:bg-white/10 rounded transition-all"
+          data-testid="export-build-canvas-btn"
+        >
+          <Share2 size={14} className="text-gray-400" />
+        </button>
       </div>
 
       {/* Search Bar */}
       {showSearch && (
-        <div className="absolute top-20 left-4 right-4 z-10">
+        <div className="absolute top-16 left-4 right-4 z-10">
           <input
             type="text"
-            placeholder="Search nodes by name or stat..."
+            placeholder="Search nodes..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-4 py-3 bg-[#1a1c2e] border border-[#3d3d43] rounded-lg text-white placeholder-gray-500 focus:border-[#c5a059] focus:outline-none"
+            className="w-full max-w-sm px-3 py-2 bg-black/80 backdrop-blur-sm border border-[#2a2a32] rounded-lg text-sm text-white placeholder-gray-600 focus:border-[#c5a059] focus:outline-none"
             data-testid="node-search-input"
           />
         </div>
@@ -566,20 +664,19 @@ export function CanvasSkillTree({
 
       {/* Path Mode Indicator */}
       {pathMode && (
-        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-10 bg-[#c5a059] text-black px-4 py-2 rounded-lg font-bold text-sm">
-          {pathStart ? 'Click destination node' : 'Click starting node'}
+        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-10 bg-[#c5a059] text-black px-3 py-1.5 rounded-lg font-medium text-xs">
+          {pathStart ? 'Click destination' : 'Click start node'}
         </div>
       )}
 
       {/* Canvas Container */}
       <div
         ref={containerRef}
-        className="relative w-full h-[700px] cursor-grab active:cursor-grabbing"
+        className="relative w-full h-[800px] cursor-grab active:cursor-grabbing"
       >
         <canvas
           ref={canvasRef}
-          width={dimensions.width}
-          height={dimensions.height}
+          style={{ width: dimensions.width, height: dimensions.height }}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
@@ -590,70 +687,94 @@ export function CanvasSkillTree({
         />
       </div>
 
-      {/* Hovered Node Tooltip */}
-      {hoveredNode && (
+      {/* Professional Tooltip */}
+      {hoveredNode && descriptions[hoveredNode.id] && (
         <div
-          className="absolute bg-[#1a1c2e] border border-[#c5a059] rounded-lg p-4 shadow-premium-xl z-20 max-w-xs pointer-events-none"
+          className="absolute z-20 pointer-events-none"
           style={{
             left: '50%',
-            bottom: '20px',
+            bottom: '80px',
             transform: 'translateX(-50%)',
           }}
           data-testid="node-tooltip"
         >
-          <div className="flex items-center gap-2 mb-2">
-            <span
-              className={`px-2 py-0.5 rounded text-xs font-bold uppercase ${
-                hoveredNode.kind === 'keystone'
-                  ? 'bg-[#c5a059]/20 text-[#c5a059]'
-                  : hoveredNode.kind === 'notable'
-                  ? 'bg-[#7ecce0]/20 text-[#7ecce0]'
-                  : 'bg-gray-500/20 text-gray-400'
-              }`}
-            >
-              {hoveredNode.kind}
-            </span>
-            {allocatedNodes.has(hoveredNode.id) && (
-              <span className="px-2 py-0.5 rounded text-xs font-bold uppercase bg-green-500/20 text-green-400">
-                Allocated
-              </span>
+          <div className="bg-[#0c0c10] border border-[#3a3a42] rounded-lg shadow-2xl overflow-hidden min-w-[280px] max-w-[360px]">
+            {/* Header */}
+            <div className={`px-4 py-3 border-b border-[#2a2a32] ${
+              hoveredNode.kind === 'keystone' 
+                ? 'bg-gradient-to-r from-[#2a2515] to-transparent' 
+                : hoveredNode.kind === 'notable'
+                ? 'bg-gradient-to-r from-[#152025] to-transparent'
+                : 'bg-gradient-to-r from-[#1a1a1f] to-transparent'
+            }`}>
+              <div className="flex items-center justify-between">
+                <h4 className={`font-bold ${
+                  hoveredNode.kind === 'keystone' 
+                    ? 'text-[#c5a059]' 
+                    : hoveredNode.kind === 'notable'
+                    ? 'text-[#7ecce0]'
+                    : 'text-gray-300'
+                }`}>
+                  {descriptions[hoveredNode.id]?.name || hoveredNode.id}
+                </h4>
+                <span className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded ${
+                  hoveredNode.kind === 'keystone'
+                    ? 'bg-[#c5a059]/20 text-[#c5a059]'
+                    : hoveredNode.kind === 'notable'
+                    ? 'bg-[#7ecce0]/20 text-[#7ecce0]'
+                    : 'bg-gray-500/20 text-gray-500'
+                }`}>
+                  {hoveredNode.kind}
+                </span>
+              </div>
+            </div>
+            
+            {/* Stats */}
+            {descriptions[hoveredNode.id]?.stats && descriptions[hoveredNode.id].stats.length > 0 && (
+              <div className="px-4 py-3">
+                <ul className="space-y-1.5">
+                  {descriptions[hoveredNode.id].stats.map((stat, i) => (
+                    <li key={i} className="text-sm text-[#8888aa] leading-relaxed">
+                      {stat}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             )}
+
+            {/* Footer */}
+            <div className="px-4 py-2 bg-[#08080a] border-t border-[#2a2a32] flex items-center justify-between">
+              <span className="text-[10px] text-gray-600">
+                {allocatedNodes.has(hoveredNode.id) ? 'Allocated' : 'Click to allocate'}
+              </span>
+              <span className="text-[10px] text-gray-600 font-mono">
+                {hoveredNode.id}
+              </span>
+            </div>
           </div>
-          <h4 className="text-lg font-bold text-white mb-2">
-            {descriptions[hoveredNode.id]?.name || hoveredNode.id}
-          </h4>
-          {descriptions[hoveredNode.id]?.stats && (
-            <ul className="space-y-1">
-              {descriptions[hoveredNode.id].stats.map((stat, i) => (
-                <li key={i} className="text-sm text-gray-300">
-                  • {stat}
-                </li>
-              ))}
-            </ul>
-          )}
         </div>
       )}
 
-      {/* Stats Summary Bar */}
-      <div className="flex items-center justify-between p-4 border-t border-[#3d3d43] bg-[#1a1c2e]">
-        <div className="flex items-center gap-6">
-          <div className="text-center">
-            <p className="text-xs text-gray-500 uppercase">Nodes</p>
-            <p className="text-lg font-bold text-[#c5a059]" data-testid="allocated-nodes-count">
-              {allocatedNodes.size}
-            </p>
+      {/* Bottom Stats Bar */}
+      <div className="absolute bottom-0 left-0 right-0 bg-black/80 backdrop-blur-sm border-t border-[#1a1a22] px-4 py-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] uppercase tracking-wider text-gray-600">Allocated</span>
+              <span className="text-sm font-bold text-[#c5a059]" data-testid="allocated-nodes-count">
+                {allocatedNodes.size}
+              </span>
+              <span className="text-xs text-gray-600">/ {level}</span>
+            </div>
+            <div className="w-px h-4 bg-[#2a2a32]" />
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] uppercase tracking-wider text-gray-600">Available</span>
+              <span className="text-sm text-gray-400">{Math.max(0, level - allocatedNodes.size)}</span>
+            </div>
           </div>
-          <div className="text-center">
-            <p className="text-xs text-gray-500 uppercase">Available</p>
-            <p className="text-lg font-bold text-gray-400">{Math.max(0, level - allocatedNodes.size)}</p>
+          <div className="text-[10px] text-gray-600">
+            {nodes.length.toLocaleString()} nodes
           </div>
-          <div className="text-center">
-            <p className="text-xs text-gray-500 uppercase">Level</p>
-            <p className="text-lg font-bold text-white">{level}</p>
-          </div>
-        </div>
-        <div className="text-sm text-gray-500">
-          Total Nodes: {nodes.length.toLocaleString()}
         </div>
       </div>
     </div>
