@@ -287,7 +287,8 @@ export function CanvasSkillTree({
       ctx.fill();
     }
 
-    // Draw connections first (thin golden/amber lines)
+    // Draw connections first (thin clean lines like PoE 2)
+    ctx.lineCap = 'round';
     connections.forEach((conn) => {
       const fromNode = nodeMap.get(conn.from);
       const toNode = nodeMap.get(conn.to);
@@ -305,18 +306,21 @@ export function CanvasSkillTree({
       ctx.lineTo(to.x, to.y);
 
       if (bothAllocated) {
+        // Bright gold for allocated path
         ctx.strokeStyle = '#c5a059';
-        ctx.lineWidth = 1.5 * canvasState.scale;
-        ctx.shadowColor = 'rgba(197, 160, 89, 0.5)';
-        ctx.shadowBlur = 4;
+        ctx.lineWidth = Math.max(1.5, 1.2 * canvasState.scale);
+        ctx.shadowColor = 'rgba(197, 160, 89, 0.6)';
+        ctx.shadowBlur = 3;
       } else if (oneAllocated) {
-        ctx.strokeStyle = '#6a5a3a';
-        ctx.lineWidth = 1 * canvasState.scale;
+        // Dim gold for adjacent to allocated
+        ctx.strokeStyle = '#5a4a2a';
+        ctx.lineWidth = Math.max(0.8, 0.7 * canvasState.scale);
         ctx.shadowColor = 'transparent';
         ctx.shadowBlur = 0;
       } else {
-        ctx.strokeStyle = '#2a2a32';
-        ctx.lineWidth = 0.5 * canvasState.scale;
+        // Very subtle dark line for unallocated
+        ctx.strokeStyle = '#1a1a22';
+        ctx.lineWidth = Math.max(0.3, 0.4 * canvasState.scale);
         ctx.shadowColor = 'transparent';
         ctx.shadowBlur = 0;
       }
