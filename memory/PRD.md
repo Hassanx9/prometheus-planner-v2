@@ -2,18 +2,18 @@
 
 ## Project Overview
 **Name:** Prometheus - ARPG Build Planner  
-**Version:** 2.0.0  
+**Version:** 2.1.0  
 **Last Updated:** January 18, 2026  
 **Tech Stack:** Next.js 15, TypeScript, Tailwind CSS, next-intl (i18n)
 
 ## Original Problem Statement
 User requested integration of the full Path of Exile 2 passive skill tree (similar to poeplanner.com/poe2) with:
 - Interactive Canvas-based tree rendering for 2500+ nodes
+- Professional game-accurate visual design matching PoE 2 aesthetic
 - Smart pathfinding between nodes
-- Stat calculation sidebar
-- Level progression slider ("Breadcrumb" Mobalytics-style feature)
+- Stat calculation sidebar with collapsible sections
+- Level progression slider
 - Build sharing/export codes
-- Bug fixes for the existing Vercel deployment
 
 ## User Personas
 1. **Hardcore PoE 2 Player** - Needs detailed tree planning with accurate stat calculations
@@ -23,44 +23,56 @@ User requested integration of the full Path of Exile 2 passive skill tree (simil
 ## Core Requirements (Static)
 - [x] Full PoE 2 passive tree visualization (2,546 nodes)
 - [x] Canvas-based rendering for performance
-- [x] Zoom/pan navigation
+- [x] Game-accurate visual design (small nodes, proper shapes, glow effects)
+- [x] Zoom/pan navigation (30%-400%)
 - [x] Node allocation/deallocation on click
 - [x] Smart pathfinding mode
 - [x] Node search functionality
-- [x] Level progression slider with presets
+- [x] Level input with manual entry
 - [x] Real-time stat calculation
 - [x] Build export/share codes
-- [x] Class selector
+- [x] Class selector (Witch, Ranger, Warrior, Mercenary, Monk, Sorceress)
+- [x] Collapsible stats sidebar (Attributes, Defensive, Offensive, Damage)
 - [x] Multi-language support (EN/AR)
 
-## What's Been Implemented (January 18, 2026)
+## What's Been Implemented
 
-### Phase 1: Core Infrastructure ✅
-- Fixed `Gem` import bug on homepage
-- Downloaded PoE 2 tree data from community repository (marcoaaguiar/poe2-tree)
-- Created `/app/public/tree-data/nodes.json` (2,546 nodes)
-- Created `/app/public/tree-data/nodes_desc.json` (node descriptions & stats)
+### January 18, 2026 - Initial MVP
+- Downloaded PoE 2 tree data (2,546 nodes)
+- Basic Canvas skill tree implementation
+- Level progression slider
 
-### Phase 2: Canvas Skill Tree ✅
-- Created `/app/lib/tree-data.ts` - Tree data types, utilities, pathfinding
-- Created `/app/components/builds/CanvasSkillTree.tsx` - High-performance Canvas renderer
-- Features: zoom (30%-300%), pan, node selection, connections
+### January 18, 2026 - Visual Redesign (Current)
+- **Completely redesigned Canvas renderer** to match PoE 2 game aesthetic:
+  - Smaller, refined node sizes (8px keystones, 5px notables, 2.5px smalls)
+  - Diamond shapes for keystones
+  - Hexagonal shapes for notables
+  - Circular shapes for small nodes
+  - Radial glow effects around nodes
+  - Cosmic dark background with subtle stars
+  - Thin golden connection lines
+  - Professional tooltips with node names and stats
 
-### Phase 3: Build Planner Page ✅
-- Updated `/app/app/[locale]/build-planner/page.tsx`
-- Level progression slider (1-100) with presets (20, 40, 60, 80, 100)
-- Character Stats sidebar (Defensive, Attributes, Offensive, Damage)
-- Build Information panel (name, class, points used)
-- Actions panel (Save, Share, Export)
+- **Updated sidebar** with game-like collapsible sections:
+  - Character info panel
+  - Collapse All / Expand All buttons
+  - Attributes (Str/Dex/Int)
+  - Defensive stats (Life, Mana, ES, Armour, Evasion)
+  - Offensive stats (Crit, Attack Speed, Cast Speed)
+  - Damage types (Physical, Fire, Cold, Lightning, Chaos)
 
-### Phase 4: Bug Fixes ✅
-- Fixed duplicate html/body tags causing hydration error
-- Fixed missing `trendingBuilds` variable on homepage
-- Fixed duplicate `data-testid` attributes
+- **Compact header** with inline controls:
+  - Class selector dropdown
+  - Level input field
+  - Points counter
+  - Build name input
+  - Save/Share/Export buttons
 
 ## Testing Results
-- **Frontend:** 98% pass rate
-- All major functionality verified working
+- **Frontend:** 100% pass rate
+- All 20 test cases passed
+- No JavaScript errors
+- Professional design verified
 
 ## Prioritized Backlog
 
@@ -75,25 +87,26 @@ User requested integration of the full Path of Exile 2 passive skill tree (simil
 
 ### P2 (Medium)
 - [ ] Ascendancy trees integration
-- [ ] Weapon set skill trees
+- [ ] Class-specific starting points
 - [ ] Build comparison tool
 - [ ] AI build recommendations
 
 ### P3 (Low)
 - [ ] Real-time economy integration (poe.ninja)
 - [ ] Video embed for build guides
-- [ ] Mobile app version
+- [ ] Mobile optimization
 
 ## Next Tasks
 1. Add localStorage persistence for allocated nodes
 2. Implement build import from share code
-3. Add ascendancy tree data
+3. Add class-specific starting node positions
 4. Connect to backend for build storage
 5. Implement user authentication
 
 ## Architecture Notes
-- Tree data loaded from static JSON files
-- Canvas API for rendering (not DOM elements)
-- Pathfinding uses BFS algorithm
-- Stat calculation parses node descriptions for modifiers
+- Tree data loaded from static JSON files in `/public/tree-data/`
+- Canvas API with device pixel ratio scaling for crisp rendering
+- Different node shapes: diamonds (keystones), hexagons (notables), circles (smalls)
+- Radial gradients for glow effects
+- BFS pathfinding algorithm
 - Build codes use base64-encoded JSON of node IDs
