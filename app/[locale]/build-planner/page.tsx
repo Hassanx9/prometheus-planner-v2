@@ -8,33 +8,34 @@ import {
   Shield,
   Zap,
   Heart,
-  Eye,
-  Target,
+  ChevronDown,
+  ChevronUp,
   Save,
   Share2,
   Download,
-  RotateCcw,
-  ChevronRight,
   Flame,
   Snowflake,
   CloudLightning,
   Skull,
-  Move,
-  Crosshair,
+  User,
   Sparkles,
-  Info,
 } from 'lucide-react';
 import { CanvasSkillTree } from '@/components/builds/CanvasSkillTree';
 import { StatTotals, CLASS_STARTS } from '@/lib/tree-data';
 
 export default function BuildPlannerPage() {
-  const t = useTranslations('builds');
   const locale = useLocale();
 
   const [selectedClass, setSelectedClass] = useState('Witch');
-  const [buildName, setBuildName] = useState('My Build');
+  const [buildName, setBuildName] = useState('Untitled Build');
   const [level, setLevel] = useState(100);
   const [allocatedPoints, setAllocatedPoints] = useState(0);
+  const [expandedSections, setExpandedSections] = useState({
+    attributes: true,
+    defensive: true,
+    offensive: false,
+    damage: false,
+  });
   const [stats, setStats] = useState<StatTotals>({
     life: 0,
     mana: 0,
@@ -64,280 +65,308 @@ export default function BuildPlannerPage() {
     setAllocatedPoints(count);
   }, []);
 
-  // Level presets for "Breadcrumb" leveling feature
-  const levelPresets = [20, 40, 60, 80, 100];
+  const toggleSection = (section: keyof typeof expandedSections) => {
+    setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0a0b0f] via-[#050506] to-[#0a0b0f]">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-[#1a1c2e] to-[#0f1116] border-b border-[#3d3d43]/50">
-        <div className="max-w-[1900px] mx-auto px-8 py-6">
+    <div className="min-h-screen bg-[#030304]">
+      {/* Compact Header */}
+      <div className="bg-[#0a0a0e] border-b border-[#1a1a22]">
+        <div className="max-w-[1920px] mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
-            <div>
-              <div className="inline-flex items-center gap-2 bg-[#c5a059]/10 border border-[#c5a059]/30 px-4 py-2 rounded-full mb-4">
-                <Sparkles size={16} className="text-[#c5a059]" />
-                <span className="text-sm font-bold text-[#c5a059] uppercase tracking-wider">
-                  Full Passive Tree Planner
-                </span>
+            <div className="flex items-center gap-4">
+              {/* Class Selector */}
+              <select
+                value={selectedClass}
+                onChange={(e) => setSelectedClass(e.target.value)}
+                className="px-3 py-1.5 bg-[#0d0d12] border border-[#2a2a32] rounded text-sm text-white focus:border-[#c5a059] focus:outline-none cursor-pointer"
+                data-testid="class-select"
+              >
+                {Object.keys(CLASS_STARTS).map((cls) => (
+                  <option key={cls} value={cls}>{cls}</option>
+                ))}
+              </select>
+
+              {/* Level */}
+              <div className="flex items-center gap-2 bg-[#0d0d12] border border-[#2a2a32] rounded px-3 py-1.5">
+                <span className="text-xs text-gray-500">Level</span>
+                <input
+                  type="number"
+                  min="1"
+                  max="100"
+                  value={level}
+                  onChange={(e) => setLevel(Math.min(100, Math.max(1, parseInt(e.target.value) || 1)))}
+                  className="w-12 bg-transparent text-white text-sm font-bold text-center focus:outline-none"
+                  data-testid="level-input"
+                />
               </div>
-              <h1 className="text-4xl font-black text-white mb-2" data-testid="page-title">
-                Path of Exile 2 Build Planner
-              </h1>
-              <p className="text-gray-400">
-                Interactive skill tree with {(2546).toLocaleString()} nodes • Smart pathfinding • Real-time stat calculation
-              </p>
+
+              {/* Points Display */}
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-500">Points:</span>
+                <span className="text-sm font-bold text-[#c5a059]" data-testid="points-used">
+                  {allocatedPoints}
+                </span>
+                <span className="text-xs text-gray-600">/ {level}</span>
+              </div>
             </div>
 
-            <div className="flex items-center gap-4">
-              <Link
-                href={`/${locale}/builds`}
-                className="px-4 py-2 text-gray-400 hover:text-white transition-colors"
+            <div className="flex items-center gap-2">
+              {/* Build Name */}
+              <input
+                type="text"
+                value={buildName}
+                onChange={(e) => setBuildName(e.target.value)}
+                className="px-3 py-1.5 bg-[#0d0d12] border border-[#2a2a32] rounded text-sm text-white w-48 focus:border-[#c5a059] focus:outline-none"
+                data-testid="build-name-input"
+              />
+
+              {/* Actions */}
+              <button
+                className="p-1.5 bg-[#0d0d12] border border-[#2a2a32] hover:border-[#c5a059] text-gray-400 hover:text-[#c5a059] rounded transition-all"
+                title="Save Build"
+                data-testid="save-build-btn"
               >
-                Browse Builds
-              </Link>
-              <Link
-                href={`/${locale}/ai`}
-                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#c5a059] to-[#d4b16a] text-black font-bold rounded-xl hover:shadow-lg hover:shadow-[#c5a059]/30 transition-all"
+                <Save size={16} />
+              </button>
+              <button
+                className="p-1.5 bg-[#0d0d12] border border-[#2a2a32] hover:border-[#c5a059] text-gray-400 hover:text-[#c5a059] rounded transition-all"
+                title="Share Build"
+                data-testid="share-build-btn"
               >
-                <Sparkles size={18} />
-                AI Advisor
-              </Link>
+                <Share2 size={16} />
+              </button>
+              <button
+                className="p-1.5 bg-[#0d0d12] border border-[#2a2a32] hover:border-[#c5a059] text-gray-400 hover:text-[#c5a059] rounded transition-all"
+                title="Export Code"
+                data-testid="export-build-btn"
+              >
+                <Download size={16} />
+              </button>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-[1900px] mx-auto px-8 py-8">
-        <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
-          {/* Main Skill Tree Area */}
-          <div className="xl:col-span-3 space-y-6">
-            {/* Level Slider - "Breadcrumb" Feature */}
-            <div className="bg-[#1a1c2e] border border-[#3d3d43] rounded-xl p-6 shadow-premium">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                  <Target size={20} className="text-[#c5a059]" />
-                  Character Level Progression
-                </h3>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-400">Level:</span>
-                  <span className="text-2xl font-black text-[#c5a059]" data-testid="current-level">
-                    {level}
-                  </span>
-                </div>
+      {/* Main Content */}
+      <div className="flex h-[calc(100vh-57px)]">
+        {/* Skill Tree - Main Area */}
+        <div className="flex-1">
+          <CanvasSkillTree
+            onStatsChange={handleStatsChange}
+            onNodeCountChange={handleNodeCountChange}
+            selectedClass={selectedClass}
+            level={level}
+          />
+        </div>
+
+        {/* Right Sidebar - Stats Panel */}
+        <div className="w-72 bg-[#0a0a0e] border-l border-[#1a1a22] overflow-y-auto">
+          {/* Character Info */}
+          <div className="p-4 border-b border-[#1a1a22]">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-[#1a1a22] rounded-lg flex items-center justify-center">
+                <User size={24} className="text-[#c5a059]" />
               </div>
-
-              {/* Level Presets */}
-              <div className="flex items-center gap-4 mb-4">
-                {levelPresets.map((preset) => (
-                  <button
-                    key={preset}
-                    onClick={() => setLevel(preset)}
-                    className={`px-4 py-2 rounded-lg font-bold transition-all ${
-                      level === preset
-                        ? 'bg-[#c5a059] text-black'
-                        : 'bg-[#0f1116] border border-[#3d3d43] text-gray-400 hover:border-[#c5a059] hover:text-white'
-                    }`}
-                    data-testid={`level-preset-${preset}`}
-                  >
-                    Lv.{preset}
-                  </button>
-                ))}
-              </div>
-
-              {/* Level Slider */}
-              <input
-                type="range"
-                min="1"
-                max="100"
-                value={level}
-                onChange={(e) => setLevel(parseInt(e.target.value))}
-                className="w-full h-3 bg-[#0f1116] rounded-full appearance-none cursor-pointer accent-[#c5a059]"
-                data-testid="level-slider"
-              />
-              <div className="flex justify-between text-xs text-gray-500 mt-2">
-                <span>Level 1</span>
-                <span>Level 50</span>
-                <span>Level 100</span>
-              </div>
-            </div>
-
-            {/* Canvas Skill Tree */}
-            <CanvasSkillTree
-              onStatsChange={handleStatsChange}
-              onNodeCountChange={handleNodeCountChange}
-              selectedClass={selectedClass}
-              level={level}
-            />
-
-            {/* Tips */}
-            <div className="bg-[#1a1c2e]/50 border border-[#3d3d43]/50 rounded-xl p-4">
-              <div className="flex items-start gap-3">
-                <Info size={18} className="text-[#7ecce0] mt-0.5" />
-                <div className="text-sm text-gray-400">
-                  <p className="font-bold text-gray-300 mb-1">Tips:</p>
-                  <ul className="list-disc list-inside space-y-1">
-                    <li>Click nodes to allocate/deallocate skill points</li>
-                    <li>Use <strong>Smart Path Mode</strong> (target icon) to auto-path between nodes</li>
-                    <li>Search for specific stats using the search bar</li>
-                    <li>Scroll to zoom, drag to pan the tree</li>
-                  </ul>
-                </div>
+              <div>
+                <h3 className="font-bold text-white text-sm">{selectedClass}</h3>
+                <p className="text-xs text-gray-500">Level {level}</p>
               </div>
             </div>
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Build Info */}
-            <div className="bg-[#1a1c2e] border border-[#3d3d43] rounded-xl p-6 shadow-premium">
-              <h3 className="text-lg font-bold text-white mb-4">Build Information</h3>
+          {/* Collapse All / Expand All */}
+          <div className="flex items-center justify-between px-4 py-2 border-b border-[#1a1a22]">
+            <button
+              onClick={() => setExpandedSections({ attributes: false, defensive: false, offensive: false, damage: false })}
+              className="text-xs text-gray-500 hover:text-white transition-colors"
+            >
+              COLLAPSE ALL
+            </button>
+            <button
+              onClick={() => setExpandedSections({ attributes: true, defensive: true, offensive: true, damage: true })}
+              className="text-xs text-gray-500 hover:text-white transition-colors"
+            >
+              EXPAND ALL
+            </button>
+          </div>
 
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm text-gray-400 mb-1">Build Name</label>
-                  <input
-                    type="text"
-                    value={buildName}
-                    onChange={(e) => setBuildName(e.target.value)}
-                    className="w-full px-3 py-2 bg-[#0f1116] border border-[#3d3d43] rounded-lg text-white focus:border-[#c5a059] focus:outline-none"
-                    data-testid="build-name-input"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm text-gray-400 mb-1">Class</label>
-                  <select
-                    value={selectedClass}
-                    onChange={(e) => setSelectedClass(e.target.value)}
-                    className="w-full px-3 py-2 bg-[#0f1116] border border-[#3d3d43] rounded-lg text-white focus:border-[#c5a059] focus:outline-none"
-                    data-testid="class-select"
-                  >
-                    {Object.keys(CLASS_STARTS).map((cls) => (
-                      <option key={cls} value={cls}>
-                        {cls}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="pt-4 border-t border-[#3d3d43]">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm text-gray-400">Skill Points Used</span>
-                    <span className="text-lg font-bold text-[#c5a059]" data-testid="points-used">
-                      {allocatedPoints}/{level}
-                    </span>
-                  </div>
-                  <div className="w-full h-2 bg-[#0f1116] rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-[#c5a059] to-[#d4b16a] transition-all"
-                      style={{ width: `${Math.min(100, (allocatedPoints / level) * 100)}%` }}
-                    />
-                  </div>
-                </div>
+          {/* Attributes Section */}
+          <div className="border-b border-[#1a1a22]">
+            <button
+              onClick={() => toggleSection('attributes')}
+              className="w-full px-4 py-3 flex items-center justify-between hover:bg-white/5 transition-colors"
+            >
+              <span className="text-xs font-bold uppercase tracking-wider text-gray-400">Attributes</span>
+              {expandedSections.attributes ? <ChevronUp size={14} className="text-gray-500" /> : <ChevronDown size={14} className="text-gray-500" />}
+            </button>
+            {expandedSections.attributes && (
+              <div className="px-4 pb-3 space-y-2">
+                <StatRowCompact 
+                  icon={<Heart size={12} className="text-red-500" />} 
+                  label="Strength" 
+                  value={stats.strength}
+                  color="text-red-400"
+                />
+                <StatRowCompact 
+                  icon={<Zap size={12} className="text-green-500" />} 
+                  label="Dexterity" 
+                  value={stats.dexterity}
+                  color="text-green-400"
+                />
+                <StatRowCompact 
+                  icon={<Sparkles size={12} className="text-blue-500" />} 
+                  label="Intelligence" 
+                  value={stats.intelligence}
+                  color="text-blue-400"
+                />
               </div>
+            )}
+          </div>
+
+          {/* Defensive Section */}
+          <div className="border-b border-[#1a1a22]">
+            <button
+              onClick={() => toggleSection('defensive')}
+              className="w-full px-4 py-3 flex items-center justify-between hover:bg-white/5 transition-colors"
+            >
+              <span className="text-xs font-bold uppercase tracking-wider text-gray-400">Defensive</span>
+              {expandedSections.defensive ? <ChevronUp size={14} className="text-gray-500" /> : <ChevronDown size={14} className="text-gray-500" />}
+            </button>
+            {expandedSections.defensive && (
+              <div className="px-4 pb-3 space-y-2">
+                <StatRowCompact 
+                  icon={<Heart size={12} className="text-red-400" />} 
+                  label="Life" 
+                  value={stats.life}
+                  suffix="%"
+                />
+                <StatRowCompact 
+                  icon={<Zap size={12} className="text-blue-400" />} 
+                  label="Mana" 
+                  value={stats.mana}
+                  suffix="%"
+                />
+                <StatRowCompact 
+                  icon={<Shield size={12} className="text-purple-400" />} 
+                  label="Energy Shield" 
+                  value={stats.energyShield}
+                  suffix="%"
+                />
+                <StatRowCompact 
+                  icon={<Shield size={12} className="text-orange-400" />} 
+                  label="Armour" 
+                  value={stats.armour}
+                  suffix="%"
+                />
+                <StatRowCompact 
+                  icon={<Shield size={12} className="text-green-400" />} 
+                  label="Evasion" 
+                  value={stats.evasion}
+                  suffix="%"
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Offensive Section */}
+          <div className="border-b border-[#1a1a22]">
+            <button
+              onClick={() => toggleSection('offensive')}
+              className="w-full px-4 py-3 flex items-center justify-between hover:bg-white/5 transition-colors"
+            >
+              <span className="text-xs font-bold uppercase tracking-wider text-gray-400">Offensive</span>
+              {expandedSections.offensive ? <ChevronUp size={14} className="text-gray-500" /> : <ChevronDown size={14} className="text-gray-500" />}
+            </button>
+            {expandedSections.offensive && (
+              <div className="px-4 pb-3 space-y-2">
+                <StatRowCompact 
+                  icon={<Sword size={12} className="text-yellow-400" />} 
+                  label="Critical Chance" 
+                  value={stats.criticalChance}
+                  suffix="%"
+                />
+                <StatRowCompact 
+                  icon={<Zap size={12} className="text-yellow-400" />} 
+                  label="Attack Speed" 
+                  value={stats.attackSpeed}
+                  suffix="%"
+                />
+                <StatRowCompact 
+                  icon={<Sparkles size={12} className="text-purple-400" />} 
+                  label="Cast Speed" 
+                  value={stats.castSpeed}
+                  suffix="%"
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Damage Section */}
+          <div className="border-b border-[#1a1a22]">
+            <button
+              onClick={() => toggleSection('damage')}
+              className="w-full px-4 py-3 flex items-center justify-between hover:bg-white/5 transition-colors"
+            >
+              <span className="text-xs font-bold uppercase tracking-wider text-gray-400">Damage</span>
+              {expandedSections.damage ? <ChevronUp size={14} className="text-gray-500" /> : <ChevronDown size={14} className="text-gray-500" />}
+            </button>
+            {expandedSections.damage && (
+              <div className="px-4 pb-3 space-y-2">
+                <StatRowCompact 
+                  icon={<Sword size={12} className="text-gray-400" />} 
+                  label="Physical" 
+                  value={stats.damagePhysical}
+                  suffix="%"
+                />
+                <StatRowCompact 
+                  icon={<Flame size={12} className="text-orange-500" />} 
+                  label="Fire" 
+                  value={stats.damageFire}
+                  suffix="%"
+                />
+                <StatRowCompact 
+                  icon={<Snowflake size={12} className="text-cyan-400" />} 
+                  label="Cold" 
+                  value={stats.damageCold}
+                  suffix="%"
+                />
+                <StatRowCompact 
+                  icon={<CloudLightning size={12} className="text-yellow-300" />} 
+                  label="Lightning" 
+                  value={stats.damageLightning}
+                  suffix="%"
+                />
+                <StatRowCompact 
+                  icon={<Skull size={12} className="text-purple-500" />} 
+                  label="Chaos" 
+                  value={stats.damageChaos}
+                  suffix="%"
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Footer Info */}
+          <div className="p-4">
+            <div className="text-center">
+              <p className="text-[10px] text-gray-600 mb-2">
+                Click nodes to allocate points
+              </p>
+              <p className="text-[10px] text-gray-600">
+                Use path mode for smart pathing
+              </p>
             </div>
 
-            {/* Character Stats */}
-            <div className="bg-[#1a1c2e] border border-[#3d3d43] rounded-xl p-6 shadow-premium">
-              <h3 className="text-lg font-bold text-white mb-4">Character Stats</h3>
-
-              <div className="space-y-4">
-                {/* Defensive */}
-                <div>
-                  <h4 className="text-xs text-gray-500 uppercase tracking-wider mb-2">Defensive</h4>
-                  <div className="space-y-2">
-                    <StatRow icon={<Heart size={14} className="text-red-500" />} label="Life" value={`+${stats.life}%`} />
-                    <StatRow icon={<Zap size={14} className="text-blue-400" />} label="Mana" value={`+${stats.mana}%`} />
-                    <StatRow icon={<Shield size={14} className="text-purple-400" />} label="Energy Shield" value={`+${stats.energyShield}%`} />
-                    <StatRow icon={<Shield size={14} className="text-orange-400" />} label="Armour" value={`+${stats.armour}%`} />
-                    <StatRow icon={<Eye size={14} className="text-green-400" />} label="Evasion" value={`+${stats.evasion}%`} />
-                  </div>
-                </div>
-
-                {/* Attributes */}
-                <div>
-                  <h4 className="text-xs text-gray-500 uppercase tracking-wider mb-2">Attributes</h4>
-                  <div className="space-y-2">
-                    <StatRow icon={<Sword size={14} className="text-red-400" />} label="Strength" value={`+${stats.strength}`} />
-                    <StatRow icon={<Move size={14} className="text-green-400" />} label="Dexterity" value={`+${stats.dexterity}`} />
-                    <StatRow icon={<Sparkles size={14} className="text-blue-400" />} label="Intelligence" value={`+${stats.intelligence}`} />
-                  </div>
-                </div>
-
-                {/* Offensive */}
-                <div>
-                  <h4 className="text-xs text-gray-500 uppercase tracking-wider mb-2">Offensive</h4>
-                  <div className="space-y-2">
-                    <StatRow icon={<Crosshair size={14} className="text-yellow-400" />} label="Critical Chance" value={`+${stats.criticalChance}%`} />
-                    <StatRow icon={<Zap size={14} className="text-yellow-400" />} label="Attack Speed" value={`+${stats.attackSpeed}%`} />
-                    <StatRow icon={<Sparkles size={14} className="text-purple-400" />} label="Cast Speed" value={`+${stats.castSpeed}%`} />
-                  </div>
-                </div>
-
-                {/* Damage Types */}
-                <div>
-                  <h4 className="text-xs text-gray-500 uppercase tracking-wider mb-2">Damage</h4>
-                  <div className="space-y-2">
-                    <StatRow icon={<Sword size={14} className="text-gray-400" />} label="Physical" value={`+${stats.damagePhysical}%`} />
-                    <StatRow icon={<Flame size={14} className="text-orange-500" />} label="Fire" value={`+${stats.damageFire}%`} />
-                    <StatRow icon={<Snowflake size={14} className="text-cyan-400" />} label="Cold" value={`+${stats.damageCold}%`} />
-                    <StatRow icon={<CloudLightning size={14} className="text-yellow-300" />} label="Lightning" value={`+${stats.damageLightning}%`} />
-                    <StatRow icon={<Skull size={14} className="text-purple-500" />} label="Chaos" value={`+${stats.damageChaos}%`} />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div className="bg-[#1a1c2e] border border-[#3d3d43] rounded-xl p-6 shadow-premium">
-              <h3 className="text-lg font-bold text-white mb-4">Actions</h3>
-
-              <div className="space-y-3">
-                <button
-                  className="w-full flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-[#c5a059] to-[#d4b16a] text-black font-bold rounded-lg hover:shadow-lg hover:shadow-[#c5a059]/30 transition-all"
-                  data-testid="save-build-btn"
-                >
-                  <Save size={18} />
-                  Save Build
-                </button>
-
-                <button
-                  className="w-full flex items-center gap-3 px-4 py-3 bg-[#0f1116] border border-[#3d3d43] text-gray-300 hover:border-[#c5a059] hover:text-[#c5a059] rounded-lg transition-all"
-                  data-testid="share-build-btn"
-                >
-                  <Share2 size={18} />
-                  Share Build
-                </button>
-
-                <button
-                  className="w-full flex items-center gap-3 px-4 py-3 bg-[#0f1116] border border-[#3d3d43] text-gray-300 hover:border-[#c5a059] hover:text-[#c5a059] rounded-lg transition-all"
-                  data-testid="export-build-btn"
-                >
-                  <Download size={18} />
-                  Export Code
-                </button>
-              </div>
-            </div>
-
-            {/* Quick Links */}
-            <div className="bg-[#1a1c2e] border border-[#3d3d43] rounded-xl p-6 shadow-premium">
-              <h3 className="text-lg font-bold text-white mb-4">Quick Links</h3>
-              <div className="space-y-2">
-                <Link
-                  href={`/${locale}/database`}
-                  className="flex items-center justify-between p-3 bg-[#0f1116] rounded-lg hover:bg-[#1a1c2e] transition-all group"
-                >
-                  <span className="text-gray-400 group-hover:text-white">Item Database</span>
-                  <ChevronRight size={16} className="text-gray-600 group-hover:text-[#c5a059]" />
-                </Link>
-                <Link
-                  href={`/${locale}/builds`}
-                  className="flex items-center justify-between p-3 bg-[#0f1116] rounded-lg hover:bg-[#1a1c2e] transition-all group"
-                >
-                  <span className="text-gray-400 group-hover:text-white">Community Builds</span>
-                  <ChevronRight size={16} className="text-gray-600 group-hover:text-[#c5a059]" />
-                </Link>
-              </div>
+            <div className="mt-4 pt-4 border-t border-[#1a1a22]">
+              <Link
+                href={`/${locale}/ai`}
+                className="flex items-center justify-center gap-2 w-full py-2 bg-gradient-to-r from-[#c5a059] to-[#d4b16a] text-black text-xs font-bold rounded hover:opacity-90 transition-all"
+              >
+                <Sparkles size={14} />
+                AI Build Advisor
+              </Link>
             </div>
           </div>
         </div>
@@ -346,23 +375,29 @@ export default function BuildPlannerPage() {
   );
 }
 
-// Stat Row Component
-function StatRow({
+// Compact Stat Row Component
+function StatRowCompact({
   icon,
   label,
   value,
+  suffix = '',
+  color = 'text-white',
 }: {
   icon: React.ReactNode;
   label: string;
-  value: string;
+  value: number;
+  suffix?: string;
+  color?: string;
 }) {
   return (
-    <div className="flex justify-between items-center">
+    <div className="flex items-center justify-between">
       <div className="flex items-center gap-2">
         {icon}
-        <span className="text-sm text-gray-400">{label}</span>
+        <span className="text-xs text-gray-500">{label}</span>
       </div>
-      <span className="text-sm font-medium text-white">{value}</span>
+      <span className={`text-xs font-medium ${color}`}>
+        +{value}{suffix}
+      </span>
     </div>
   );
 }
