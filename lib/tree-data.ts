@@ -1,5 +1,5 @@
 // PoE 2 Passive Tree Data Types and Utilities
-// Creates clean, organized connections like the official PoE 2 tree
+// Creates clean chain-like connections resembling the official PoE 2 tree
 
 export interface TreeNode {
   id: string;
@@ -29,7 +29,7 @@ export interface NodeDescriptions {
   [key: string]: NodeDescription;
 }
 
-// Class starting positions on the tree (normalized coordinates)
+// Class starting positions on the tree
 export const CLASS_STARTS: Record<string, { x: number; y: number; name: string; color: string }> = {
   'Witch': { x: 0.5, y: 0.15, name: 'Witch', color: '#48c' },
   'Ranger': { x: 0.75, y: 0.65, name: 'Ranger', color: '#4a4' },
@@ -47,9 +47,11 @@ export function getNodeDistance(node1: TreeNode, node2: TreeNode): number {
 }
 
 /**
- * Build clean tree connections using k-Nearest Neighbors approach
- * Each node connects to its closest neighbors (limited count)
- * This creates organized paths without chaotic web
+ * Build clean chain-like connections for the passive tree.
+ * - Small nodes form chains of 2 connections each (like beads on a string)
+ * - Notables act as junction points with 3-4 connections
+ * - Keystones are end-points with 2-3 connections
+ * - Starts are hubs with many connections
  */
 export function buildConnections(nodes: TreeNode[]): { from: string; to: string }[] {
   if (nodes.length < 2) return [];
@@ -61,151 +63,184 @@ export function buildConnections(nodes: TreeNode[]): { from: string; to: string 
   // Initialize connection counts
   nodes.forEach(n => nodeConnectionCount.set(n.id, 0));
 
-  // Helper to add connection if not exists and under limit
+  // Helper to check if connection exists
+  const hasConnection = (fromId: string, toId: string): boolean => {
+    return connectionSet.has(`${fromId}-${toId}`) || connectionSet.has(`${toId}-${fromId}`);
+  };
+
+  // Helper to add connection
   const addConnection = (fromId: string, toId: string): boolean => {
-    const key1 = `${fromId}-${toId}`;
-    const key2 = `${toId}-${fromId}`;
-    if (connectionSet.has(key1) || connectionSet.has(key2)) return false;
+    if (hasConnection(fromId, toId)) return false;
     
     connections.push({ from: fromId, to: toId });
-    connectionSet.add(key1);
-    connectionSet.add(key2);
+    connectionSet.add(`${fromId}-${toId}`);
     nodeConnectionCount.set(fromId, (nodeConnectionCount.get(fromId) || 0) + 1);
     nodeConnectionCount.set(toId, (nodeConnectionCount.get(toId) || 0) + 1);
     return true;
   };
 
-  // Max connections per node type
-  const maxConnections = (kind: string) => {
+  // Get max connections based on node type
+  const getMaxConnections = (kind: string): number => {
     switch (kind) {
-      case 'start': return 6;
-      case 'keystone': return 4;
+      case 'start': return 8;
+      case 'keystone': return 3;
       case 'notable': return 4;
       case 'small': return 2;
       default: return 2;
     }
   };
 
-  // Distance thresholds for connections
-  const maxDistance = (kind1: string, kind2: string) => {
-    // Small nodes connect very close only
-    if (kind1 === 'small' && kind2 === 'small') return 0.018;
-    // Small to notable/keystone slightly further
-    if (kind1 === 'small' || kind2 === 'small') return 0.022;
-    // Notable to notable
-    if (kind1 === 'notable' && kind2 === 'notable') return 0.04;
-    // Keystones can reach further
-    if (kind1 === 'keystone' || kind2 === 'keystone') return 0.05;
-    // Starts reach far
-    if (kind1 === 'start' || kind2 === 'start') return 0.08;
-    return 0.025;
-  };
+  // Separate nodes by type
+  const starts = nodes.filter(n => n.kind === 'start');
+  const keystones = nodes.filter(n => n.kind === 'keystone');
+  const notables = nodes.filter(n => n.kind === 'notable');
+  const smalls = nodes.filter(n => n.kind === 'small');
+  const nodeMap = new Map(nodes.map(n => [n.id, n]));
 
-  // Sort nodes by importance (starts first, then keystones, then notables, then small)
-  const priorityOrder = { 'start': 0, 'keystone': 1, 'notable': 2, 'small': 3 };
-  const sortedNodes = [...nodes].sort((a, b) => {
-    return (priorityOrder[a.kind] || 4) - (priorityOrder[b.kind] || 4);
-  });
+  // PHASE 1: Connect each small node to its single nearest neighbor
+  // This creates clean chains
+  smalls.forEach(node => {
+    const count = nodeConnectionCount.get(node.id) || 0;
+    if (count >= 1) return; // Already connected
 
-  // For each node, connect to nearest neighbors within distance threshold
-  sortedNodes.forEach(node => {
-    const currentCount = nodeConnectionCount.get(node.id) || 0;
-    const max = maxConnections(node.kind);
-    
-    if (currentCount >= max) return;
-
-    // Find all potential neighbors sorted by distance
-    const neighbors = nodes
+    // Find the nearest node (prefer smalls, then notables)
+    const candidates = [...smalls, ...notables]
       .filter(other => other.id !== node.id)
       .map(other => ({
         node: other,
         dist: getNodeDistance(node, other),
-        maxAllowed: maxDistance(node.kind, other.kind)
+        otherCount: nodeConnectionCount.get(other.id) || 0,
+        otherMax: getMaxConnections(other.kind)
       }))
-      .filter(item => item.dist <= item.maxAllowed)
+      .filter(item => {
+        // Distance threshold based on target type
+        const maxDist = item.node.kind === 'small' ? 0.02 : 0.03;
+        return item.dist < maxDist && item.otherCount < item.otherMax;
+      })
       .sort((a, b) => a.dist - b.dist);
 
-    // Connect to nearest neighbors up to max
-    let added = 0;
-    for (const neighbor of neighbors) {
-      if (currentCount + added >= max) break;
-      
-      const neighborCount = nodeConnectionCount.get(neighbor.node.id) || 0;
-      const neighborMax = maxConnections(neighbor.node.kind);
-      
-      if (neighborCount < neighborMax) {
-        if (addConnection(node.id, neighbor.node.id)) {
-          added++;
-        }
-      }
+    if (candidates.length > 0) {
+      addConnection(node.id, candidates[0].node.id);
     }
   });
 
-  // Second pass: Ensure connectivity - connect isolated clusters
-  // Find connected components
-  const findComponent = (nodeId: string, visited: Set<string>): Set<string> => {
-    const component = new Set<string>();
-    const queue = [nodeId];
-    
-    while (queue.length > 0) {
-      const current = queue.shift()!;
-      if (visited.has(current)) continue;
-      
-      visited.add(current);
-      component.add(current);
-      
-      // Find connected nodes
-      connections.forEach(conn => {
-        if (conn.from === current && !visited.has(conn.to)) queue.push(conn.to);
-        if (conn.to === current && !visited.has(conn.from)) queue.push(conn.from);
-      });
-    }
-    
-    return component;
-  };
+  // PHASE 2: Connect remaining small nodes that are still isolated
+  smalls.forEach(node => {
+    const count = nodeConnectionCount.get(node.id) || 0;
+    if (count > 0) return; // Already connected
 
-  const visited = new Set<string>();
-  const components: Set<string>[] = [];
-  
-  nodes.forEach(node => {
-    if (!visited.has(node.id)) {
-      components.push(findComponent(node.id, visited));
+    // Try to find any nearby node
+    const candidates = nodes
+      .filter(other => other.id !== node.id)
+      .map(other => ({
+        node: other,
+        dist: getNodeDistance(node, other),
+        otherCount: nodeConnectionCount.get(other.id) || 0,
+        otherMax: getMaxConnections(other.kind)
+      }))
+      .filter(item => item.dist < 0.04 && item.otherCount < item.otherMax)
+      .sort((a, b) => a.dist - b.dist);
+
+    if (candidates.length > 0) {
+      addConnection(node.id, candidates[0].node.id);
     }
   });
 
-  // Connect separate components to nearest nodes
-  if (components.length > 1) {
-    const nodeMap = new Map(nodes.map(n => [n.id, n]));
-    
-    for (let i = 1; i < components.length; i++) {
-      const comp = components[i];
-      const mainComp = components[0];
-      
-      // Find closest pair between this component and main component
-      let bestDist = Infinity;
-      let bestPair: [string, string] | null = null;
-      
-      comp.forEach(nodeId1 => {
-        mainComp.forEach(nodeId2 => {
-          const node1 = nodeMap.get(nodeId1);
-          const node2 = nodeMap.get(nodeId2);
-          if (node1 && node2) {
-            const dist = getNodeDistance(node1, node2);
-            if (dist < bestDist && dist < 0.15) {
-              bestDist = dist;
-              bestPair = [nodeId1, nodeId2];
-            }
-          }
-        });
-      });
-      
-      if (bestPair) {
-        addConnection(bestPair[0], bestPair[1]);
-        // Merge into main component
-        comp.forEach(id => mainComp.add(id));
+  // PHASE 3: Add second connection to small nodes to complete chains
+  smalls.forEach(node => {
+    const count = nodeConnectionCount.get(node.id) || 0;
+    if (count >= 2) return; // Already has 2 connections
+
+    // Find another nearby node to connect
+    const candidates = nodes
+      .filter(other => other.id !== node.id && !hasConnection(node.id, other.id))
+      .map(other => ({
+        node: other,
+        dist: getNodeDistance(node, other),
+        otherCount: nodeConnectionCount.get(other.id) || 0,
+        otherMax: getMaxConnections(other.kind)
+      }))
+      .filter(item => {
+        const maxDist = item.node.kind === 'small' ? 0.022 : 0.035;
+        return item.dist < maxDist && item.otherCount < item.otherMax;
+      })
+      .sort((a, b) => a.dist - b.dist);
+
+    if (candidates.length > 0) {
+      addConnection(node.id, candidates[0].node.id);
+    }
+  });
+
+  // PHASE 4: Connect notables to nearby notables (creating the web backbone)
+  notables.forEach(node => {
+    const count = nodeConnectionCount.get(node.id) || 0;
+    const max = getMaxConnections('notable');
+    if (count >= max) return;
+
+    const candidates = notables
+      .filter(other => other.id !== node.id && !hasConnection(node.id, other.id))
+      .map(other => ({
+        node: other,
+        dist: getNodeDistance(node, other),
+        otherCount: nodeConnectionCount.get(other.id) || 0
+      }))
+      .filter(item => item.dist < 0.06 && item.otherCount < max)
+      .sort((a, b) => a.dist - b.dist);
+
+    // Connect to up to 2 nearest notables
+    const toConnect = Math.min(2, max - count, candidates.length);
+    for (let i = 0; i < toConnect; i++) {
+      addConnection(node.id, candidates[i].node.id);
+    }
+  });
+
+  // PHASE 5: Connect keystones to nearest notables
+  keystones.forEach(node => {
+    const count = nodeConnectionCount.get(node.id) || 0;
+    const max = getMaxConnections('keystone');
+    if (count >= max) return;
+
+    const candidates = [...notables, ...smalls]
+      .filter(other => !hasConnection(node.id, other.id))
+      .map(other => ({
+        node: other,
+        dist: getNodeDistance(node, other),
+        otherCount: nodeConnectionCount.get(other.id) || 0,
+        otherMax: getMaxConnections(other.kind)
+      }))
+      .filter(item => item.dist < 0.05 && item.otherCount < item.otherMax)
+      .sort((a, b) => a.dist - b.dist);
+
+    const toConnect = Math.min(max - count, candidates.length);
+    for (let i = 0; i < toConnect; i++) {
+      addConnection(node.id, candidates[i].node.id);
+    }
+  });
+
+  // PHASE 6: Connect class starts to nearby nodes
+  starts.forEach(node => {
+    const count = nodeConnectionCount.get(node.id) || 0;
+    const max = getMaxConnections('start');
+    if (count >= max) return;
+
+    const candidates = nodes
+      .filter(other => other.id !== node.id && other.kind !== 'start' && !hasConnection(node.id, other.id))
+      .map(other => ({
+        node: other,
+        dist: getNodeDistance(node, other),
+        otherCount: nodeConnectionCount.get(other.id) || 0,
+        otherMax: getMaxConnections(other.kind)
+      }))
+      .filter(item => item.dist < 0.1)
+      .sort((a, b) => a.dist - b.dist);
+
+    const toConnect = Math.min(max - count, candidates.length);
+    for (let i = 0; i < toConnect; i++) {
+      if (candidates[i].otherCount < candidates[i].otherMax) {
+        addConnection(node.id, candidates[i].node.id);
       }
     }
-  }
+  });
 
   return connections;
 }
@@ -219,14 +254,12 @@ export function findPath(
 ): string[] {
   const adjacencyList = new Map<string, string[]>();
 
-  // Build adjacency list
   nodes.forEach((n) => adjacencyList.set(n.id, []));
   connections.forEach((conn) => {
     adjacencyList.get(conn.from)?.push(conn.to);
     adjacencyList.get(conn.to)?.push(conn.from);
   });
 
-  // BFS
   const queue: { id: string; path: string[] }[] = [{ id: startId, path: [startId] }];
   const visited = new Set<string>([startId]);
 
@@ -245,10 +278,10 @@ export function findPath(
     }
   }
 
-  return []; // No path found
+  return [];
 }
 
-// Calculate total stats from allocated nodes
+// Stats calculation
 export interface StatTotals {
   life: number;
   mana: number;
@@ -275,24 +308,11 @@ export function calculateStats(
   descriptions: NodeDescriptions
 ): StatTotals {
   const stats: StatTotals = {
-    life: 0,
-    mana: 0,
-    energyShield: 0,
-    strength: 0,
-    dexterity: 0,
-    intelligence: 0,
-    criticalChance: 0,
-    attackSpeed: 0,
-    castSpeed: 0,
-    movementSpeed: 0,
-    damagePhysical: 0,
-    damageFire: 0,
-    damageCold: 0,
-    damageLightning: 0,
-    damageChaos: 0,
-    armour: 0,
-    evasion: 0,
-    blockChance: 0,
+    life: 0, mana: 0, energyShield: 0,
+    strength: 0, dexterity: 0, intelligence: 0,
+    criticalChance: 0, attackSpeed: 0, castSpeed: 0, movementSpeed: 0,
+    damagePhysical: 0, damageFire: 0, damageCold: 0, damageLightning: 0, damageChaos: 0,
+    armour: 0, evasion: 0, blockChance: 0,
   };
 
   allocatedNodes.forEach((node) => {
@@ -301,8 +321,6 @@ export function calculateStats(
 
     desc.stats.forEach((stat) => {
       const lower = stat.toLowerCase();
-      
-      // Parse common stat patterns
       const percentMatch = stat.match(/(\d+)%/);
       const flatMatch = stat.match(/\+(\d+)/);
       const value = percentMatch ? parseInt(percentMatch[1]) : flatMatch ? parseInt(flatMatch[1]) : 0;
@@ -331,17 +349,13 @@ export function calculateStats(
   return stats;
 }
 
-// Generate shareable build code
 export function generateBuildCode(allocatedNodeIds: string[]): string {
-  const data = JSON.stringify(allocatedNodeIds);
-  return btoa(data);
+  return btoa(JSON.stringify(allocatedNodeIds));
 }
 
-// Parse build code back to node IDs
 export function parseBuildCode(code: string): string[] {
   try {
-    const data = atob(code);
-    return JSON.parse(data);
+    return JSON.parse(atob(code));
   } catch {
     return [];
   }
