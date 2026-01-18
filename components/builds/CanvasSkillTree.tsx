@@ -308,19 +308,19 @@ export function CanvasSkillTree({
       if (bothAllocated) {
         // Bright gold for allocated path
         ctx.strokeStyle = '#c5a059';
-        ctx.lineWidth = Math.max(1.5, 1.2 * canvasState.scale);
-        ctx.shadowColor = 'rgba(197, 160, 89, 0.6)';
-        ctx.shadowBlur = 3;
+        ctx.lineWidth = Math.max(2, 1.5 * canvasState.scale);
+        ctx.shadowColor = 'rgba(197, 160, 89, 0.7)';
+        ctx.shadowBlur = 4;
       } else if (oneAllocated) {
         // Dim gold for adjacent to allocated
-        ctx.strokeStyle = '#5a4a2a';
-        ctx.lineWidth = Math.max(0.8, 0.7 * canvasState.scale);
-        ctx.shadowColor = 'transparent';
-        ctx.shadowBlur = 0;
+        ctx.strokeStyle = '#6a5a3a';
+        ctx.lineWidth = Math.max(1, 1 * canvasState.scale);
+        ctx.shadowColor = 'rgba(197, 160, 89, 0.3)';
+        ctx.shadowBlur = 2;
       } else {
-        // Very subtle dark line for unallocated
-        ctx.strokeStyle = '#1a1a22';
-        ctx.lineWidth = Math.max(0.3, 0.4 * canvasState.scale);
+        // Subtle visible line for unallocated (slightly brighter than before)
+        ctx.strokeStyle = '#2d2d3a';
+        ctx.lineWidth = Math.max(0.6, 0.6 * canvasState.scale);
         ctx.shadowColor = 'transparent';
         ctx.shadowBlur = 0;
       }
