@@ -1,14 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
+import Link from 'next/link';
 import { 
   Download, Upload, Share2, ThumbsUp, MessageCircle, 
   Eye, Clock, TrendingUp, Hammer, Package, Target,
-  ChevronRight, Play, BookOpen
+  ChevronRight, Play, BookOpen, ExternalLink
 } from 'lucide-react';
 import { Build } from '@/types';
-import { InteractiveSkillTree } from './InteractiveSkillTree';
 import { GemLinksViewer } from './GemLinksViewer';
 import { CraftingGuide } from './CraftingGuide';
 import { GearPriorityChart } from './GearPriorityChart';
@@ -21,6 +21,7 @@ interface BuildDetailProps {
 
 export function BuildDetail({ build }: BuildDetailProps) {
   const t = useTranslations('builds');
+  const locale = useLocale();
   const [activeTab, setActiveTab] = useState<'overview' | 'skillTree' | 'gems' | 'crafting' | 'gear' | 'leveling'>('overview');
 
   const tabs = [
@@ -174,8 +175,29 @@ export function BuildDetail({ build }: BuildDetailProps) {
           </div>
         )}
 
-        {activeTab === 'skillTree' && build.skillTree && (
-          <InteractiveSkillTree data={build.skillTree} />
+        {activeTab === 'skillTree' && (
+          <div className="bg-[#0c0c0e] border border-[#3d3d43] p-12 text-center">
+            <Target className="mx-auto mb-6 text-[#c5a059]" size={64} />
+            <h3 className="text-2xl font-bold text-gradient-gold mb-4">
+              Interactive Skill Tree
+            </h3>
+            <p className="text-gray-400 mb-8 max-w-2xl mx-auto">
+              Plan your character's passive skill tree with our advanced interactive planner. 
+              Features smooth pan/zoom, automatic pathfinding, undo/redo, and real-time stat calculations.
+            </p>
+            <Link
+              href={`/${locale}/skill-tree`}
+              className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-[#c5a059] to-[#d4b16a] text-black font-bold uppercase tracking-wider hover:shadow-premium-xl transition-all"
+            >
+              <span>Open Skill Tree Planner</span>
+              <ExternalLink size={20} />
+            </Link>
+            {build.buildCode && (
+              <p className="mt-6 text-sm text-gray-500">
+                Build code: <code className="bg-[#141417] px-3 py-1 text-[#c5a059]">{build.buildCode}</code>
+              </p>
+            )}
+          </div>
         )}
 
         {activeTab === 'gems' && build.gemLinks && (
